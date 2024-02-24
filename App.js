@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,25 +32,31 @@ const HomeScreen = ({ navigation }) => {
     setText('');
   };
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          onChangeText={handleTextChange}
-          value={text}
-          placeholder="Type your text here"
-        />
-        {text !== '' && (
-          <TouchableOpacity style={styles.clearButton} onPress={handleClearAll}>
-            <Ionicons name="close" size={24} color="black" />
-          </TouchableOpacity>
-        )}
+    <TouchableWithoutFeedback onPress={dismissKeyboard}>
+      <View style={styles.container}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            onChangeText={handleTextChange}
+            value={text}
+            placeholder="Type your text here"
+          />
+          {text !== '' && (
+            <TouchableOpacity style={styles.clearButton} onPress={handleClearAll}>
+              <Ionicons name="close" size={24} color="black" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <TouchableOpacity style={styles.submitButton} onPress={handleEnterPress}>
+          <Text style={styles.buttonText}>Submit</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.submitButton} onPress={handleEnterPress}>
-        <Text style={styles.buttonText}>Submit</Text>
-      </TouchableOpacity>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -73,12 +79,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    marginBottom: 50,
     backgroundColor: '#f7e5e7'
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   input: {
     flex: 1,
@@ -103,9 +110,6 @@ const styles = StyleSheet.create({
   bigText: {
     fontSize: 100,
     fontWeight: 'bold',
-    textAlign: 'center',
-    flexWrap: 'wrap',
-    maxWidth: '100%',
   },
   backButton: {
     position: 'absolute',
