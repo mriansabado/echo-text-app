@@ -20,22 +20,22 @@ const BigWordApp = () => {
 
 const HomeScreen = ({ navigation }) => {
   const [text, setText] = useState('');
-  const [showAnimation, setShowAnimation] = useState(false); // State to control animation visibility
+  const [selectedAnimation, setSelectedAnimation] = useState(null);
 
   const handleTextChange = (inputText) => {
     setText(inputText);
   };
 
   const handleEnterPress = () => {
-    navigation.navigate('BigWordScreen', { text, showAnimation });
+    navigation.navigate('BigWordScreen', { text, selectedAnimation });
   };
 
   const handleClearAll = () => {
     setText('');
   };
 
-  const toggleAnimation = () => {
-    setShowAnimation(!showAnimation); // Toggle animation visibility
+  const selectAnimation = (animation) => {
+    setSelectedAnimation(animation);
   };
 
   const dismissKeyboard = () => {
@@ -45,12 +45,32 @@ const HomeScreen = ({ navigation }) => {
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <View style={styles.container}>
-        <TouchableOpacity
-          style={[styles.animationButton, showAnimation ? styles.animationButtonActive : styles.animationButtonInactive]}
-          onPress={toggleAnimation}
-        >
-          <Text style={styles.animationButtonText}>Celebrate</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={selectedAnimation === 'Animation1' ? styles.selectedButton : styles.button}
+            onPress={() => selectAnimation('Animation1')}
+          >
+            <Text style={styles.buttonText}>Alert</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={selectedAnimation === 'Animation2' ? styles.selectedButton : styles.button}
+            onPress={() => selectAnimation('Animation2')}
+          >
+            <Text style={styles.buttonText}>Warning</Text>
+          </TouchableOpacity>
+           <TouchableOpacity
+            style={selectedAnimation === 'Animation3' ? styles.selectedButton : styles.button}
+            onPress={() => selectAnimation('Animation3')}
+          >
+            <Text style={styles.buttonText}>Celebrate</Text>
+          </TouchableOpacity>
+           <TouchableOpacity
+            style={selectedAnimation === 'Animation4' ? styles.selectedButton : styles.button}
+            onPress={() => selectAnimation('Animation4')}
+          >
+            <Text style={styles.buttonText}>Check Mark</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -73,18 +93,43 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const BigWordScreen = ({ route, navigation }) => {
-  const { text, showAnimation } = route.params;
+  const { text, selectedAnimation } = route.params;
 
   return (
     <View style={styles.container}>
-      {showAnimation && (
+      {selectedAnimation === 'Animation1' && (
         <LottieView
-          source={require('./assets/animations/Animation - 1708757997694.json')} // Adjust path accordingly
+          source={require('./assets/animations/Animation - 1709705128416.json')}
           autoPlay
           loop
           style={styles.animation}
         />
       )}
+      {selectedAnimation === 'Animation2' && (
+        <LottieView
+          source={require('./assets/animations/Animation - 1709707129524.json')}
+          autoPlay
+          loop
+          style={styles.animation}
+        />
+      )}
+      {selectedAnimation === 'Animation3' && (
+        <LottieView
+          source={require('./assets/animations/Animation - 1708757997694.json')}
+          autoPlay
+          loop
+          style={styles.animation}
+        />
+      )}
+      {selectedAnimation === 'Animation4' && (
+        <LottieView
+          source={require('./assets/animations/Animation - 1709707194363.json')}
+          autoPlay
+          loop
+          style={styles.animation}
+        />
+      )}
+      {/* Add more conditions for additional animations as needed */}
       <Text style={styles.bigText}>{text}</Text>
       <View style={styles.backButtonContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -128,43 +173,22 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  animationButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  button: {
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
-  },
-  animationButtonActive: {
-    backgroundColor: 'green',
-  },
-  animationButtonInactive: {
     backgroundColor: 'gray',
   },
-  animationButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 10,
-    marginRight: 10,
-  },
-  clearButton: {
-    padding: 10,
-  },
-  submitButton: {
-    backgroundColor: 'blue',
+  selectedButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    backgroundColor: 'green',
   },
   bigText: {
     fontSize: 100,
