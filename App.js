@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
+import { ScreenOrientation } from 'expo';
+
 
 const Stack = createStackNavigator();
 
 const BigWordApp = () => {
+  
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="EchoText" component={HomeScreen} options={{ orientation: 'portrait' }} />
-        <Stack.Screen name="BigWordScreen" component={BigWordScreen} options={{ orientation: 'landscape' }} />
+        <Stack.Screen name="BigTex" component={HomeScreen} options={{ orientation: 'portrait' }} />
+        <Stack.Screen name="BigTexResults" component={BigWordScreen} options={{ orientation: 'landscape' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -21,13 +24,15 @@ const BigWordApp = () => {
 const HomeScreen = ({ navigation }) => {
   const [text, setText] = useState('');
   const [selectedAnimation, setSelectedAnimation] = useState(null);
+  const [backgroundColor, setBackgroundColor] = useState('#f7e5e7');
+  const [showButtons, setShowButtons] = useState(false);
 
   const handleTextChange = (inputText) => {
     setText(inputText);
   };
 
   const handleEnterPress = () => {
-    navigation.navigate('BigWordScreen', { text, selectedAnimation });
+    navigation.navigate('BigTexResults', { text, selectedAnimation, backgroundColor });
   };
 
   const handleClearAll = () => {
@@ -35,42 +40,61 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const selectAnimation = (animation) => {
-    setSelectedAnimation(animation);
+    setSelectedAnimation(selectedAnimation === animation ? null : animation);
+  };
+
+  const toggleButtons = () => {
+    setShowButtons(!showButtons);
   };
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
 
+  const renderButtons = () => {
+    return (
+      <View style={styles.buttonContainer}>
+         <TouchableOpacity
+          style={selectedAnimation === 'Hello' ? styles.selectedButton : styles.button}
+          onPress={() => selectAnimation('Hello')}
+        >
+          <Text style={styles.buttonText}>Hello</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={selectedAnimation === 'Alert' ? styles.selectedButton : styles.button}
+          onPress={() => selectAnimation('Alert')}
+        >
+          <Text style={styles.buttonText}>Alert</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={selectedAnimation === 'Celebrate' ? styles.selectedButton : styles.button}
+          onPress={() => selectAnimation('Celebrate')}
+        >
+          <Text style={styles.buttonText}>Celebrate</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={selectedAnimation === 'Warning' ? styles.selectedButton : styles.button}
+          onPress={() => selectAnimation('Warning')}
+        >
+          <Text style={styles.buttonText}>Warning</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={selectedAnimation === 'CheckMark' ? styles.selectedButton : styles.button}
+          onPress={() => selectAnimation('CheckMark')}
+        >
+          <Text style={styles.buttonText}>Check</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <View style={styles.container}>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={selectedAnimation === 'Animation1' ? styles.selectedButton : styles.button}
-            onPress={() => selectAnimation('Animation1')}
-          >
-            <Text style={styles.buttonText}>Alert</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={selectedAnimation === 'Animation2' ? styles.selectedButton : styles.button}
-            onPress={() => selectAnimation('Animation2')}
-          >
-            <Text style={styles.buttonText}>Warning</Text>
-          </TouchableOpacity>
-           <TouchableOpacity
-            style={selectedAnimation === 'Animation3' ? styles.selectedButton : styles.button}
-            onPress={() => selectAnimation('Animation3')}
-          >
-            <Text style={styles.buttonText}>Celebrate</Text>
-          </TouchableOpacity>
-           <TouchableOpacity
-            style={selectedAnimation === 'Animation4' ? styles.selectedButton : styles.button}
-            onPress={() => selectAnimation('Animation4')}
-          >
-            <Text style={styles.buttonText}>Check Mark</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.dropdownButton} onPress={toggleButtons}>
+          <Text style={styles.dropdownText}>Themes</Text>
+        </TouchableOpacity>
+        {showButtons && renderButtons()}
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -93,44 +117,29 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const BigWordScreen = ({ route, navigation }) => {
-  const { text, selectedAnimation } = route.params;
+  const { text, selectedAnimation, backgroundColor } = route.params;
+
+  const animationSources = {
+    Hello: require('./assets/animations/Animation - 1711149112180.json'),
+    Alert: require('./assets/animations/Animation - 1709705128416.json'),
+    Celebrate: require('./assets/animations/Animation - 1708757997694.json'),
+    Warning: require('./assets/animations/Animation - 1709707129524.json'),
+    CheckMark: require('./assets/animations/Animation - 1709707194363.json'),
+  };
 
   return (
-    <View style={styles.container}>
-      {selectedAnimation === 'Animation1' && (
+    <View style={[styles.container, { backgroundColor }]}>
+      {selectedAnimation && (
         <LottieView
-          source={require('./assets/animations/Animation - 1709705128416.json')}
+          source={animationSources[selectedAnimation]}
           autoPlay
           loop
           style={styles.animation}
         />
       )}
-      {selectedAnimation === 'Animation2' && (
-        <LottieView
-          source={require('./assets/animations/Animation - 1709707129524.json')}
-          autoPlay
-          loop
-          style={styles.animation}
-        />
-      )}
-      {selectedAnimation === 'Animation3' && (
-        <LottieView
-          source={require('./assets/animations/Animation - 1708757997694.json')}
-          autoPlay
-          loop
-          style={styles.animation}
-        />
-      )}
-      {selectedAnimation === 'Animation4' && (
-        <LottieView
-          source={require('./assets/animations/Animation - 1709707194363.json')}
-          autoPlay
-          loop
-          style={styles.animation}
-        />
-      )}
-      {/* Add more conditions for additional animations as needed */}
-      <Text style={styles.bigText}>{text}</Text>
+      <ScrollView vertical>
+        <Text style={styles.bigText}>{text}</Text>
+      </ScrollView>
       <View style={styles.backButtonContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Back to text</Text>
@@ -146,7 +155,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
-    backgroundColor: '#f7e5e7',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -174,8 +182,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   buttonContainer: {
+    display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    width: '80%',
+    gap: 10,
     marginBottom: 20,
   },
   button: {
@@ -199,7 +211,7 @@ const styles = StyleSheet.create({
     bottom: 20,
   },
   backButton: {
-    backgroundColor: 'red',
+    backgroundColor: 'gray',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -212,11 +224,20 @@ const styles = StyleSheet.create({
   animation: {
     position: 'absolute',
     top: '50%',
-    left: '50%',
+    left: '45%',
     width: 300,
     height: 200,
     marginLeft: -100,
     marginTop: -100,
+  },
+  dropdownButton: {
+    marginBottom: 10,
+    backgroundColor: 'lightgray',
+    padding: 10,
+    borderRadius: 5,
+  },
+  dropdownText: {
+    fontWeight: 'bold',
   },
 });
 
