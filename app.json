@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "bigword-react-native",
-    "slug": "bigword-react-native",
+    "slug": "bigtex",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -15,16 +15,24 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.iandev808.bigtex"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.iandev808.bigtex"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5410a3dd-9530-4f9e-8393-7205a629f26b"
+      }
+    },
+    "owner": "iandev808"
   }
 }
