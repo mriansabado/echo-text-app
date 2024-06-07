@@ -33,6 +33,12 @@
         "projectId": "5410a3dd-9530-4f9e-8393-7205a629f26b"
       }
     },
-    "owner": "iandev808"
+    "owner": "iandev808",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/5410a3dd-9530-4f9e-8393-7205a629f26b"
+    }
   }
 }

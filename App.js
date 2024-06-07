@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Dimensions } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 const Stack = createStackNavigator();
 
 const BigWordApp = () => {
-  
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="BigTex" component={HomeScreen} options={{ orientation: 'portrait' }} />
-        <Stack.Screen name="BigTexResults" component={BigWordScreen} options={{ orientation: 'landscape' }} />
+        <Stack.Screen name="BigTex" component={HomeScreen} />
+        <Stack.Screen name="BigTexResults" component={BigWordScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -52,33 +52,38 @@ const HomeScreen = ({ navigation }) => {
   const renderButtons = () => {
     return (
       <View style={styles.buttonContainer}>
-         <TouchableOpacity
+        <TouchableOpacity
           style={selectedAnimation === 'Hello' ? styles.selectedButton : styles.button}
           onPress={() => selectAnimation('Hello')}
+          accessibilityLabel="Select Hand Wave Animation"
         >
-          <Text style={styles.buttonText}>Hello</Text>
+          <Text style={styles.buttonText}>Hand Wave</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={selectedAnimation === 'Alert' ? styles.selectedButton : styles.button}
           onPress={() => selectAnimation('Alert')}
+          accessibilityLabel="Select Alert Animation"
         >
           <Text style={styles.buttonText}>Alert</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={selectedAnimation === 'Celebrate' ? styles.selectedButton : styles.button}
           onPress={() => selectAnimation('Celebrate')}
+          accessibilityLabel="Select Celebrate Animation"
         >
           <Text style={styles.buttonText}>Celebrate</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={selectedAnimation === 'Warning' ? styles.selectedButton : styles.button}
           onPress={() => selectAnimation('Warning')}
+          accessibilityLabel="Select Warning Animation"
         >
           <Text style={styles.buttonText}>Warning</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={selectedAnimation === 'CheckMark' ? styles.selectedButton : styles.button}
           onPress={() => selectAnimation('CheckMark')}
+          accessibilityLabel="Select Check Mark Animation"
         >
           <Text style={styles.buttonText}>Check</Text>
         </TouchableOpacity>
@@ -99,6 +104,7 @@ const HomeScreen = ({ navigation }) => {
             onChangeText={handleTextChange}
             value={text}
             placeholder="Type your text here"
+            accessibilityHint="Enter your text to see animated results"
           />
           {text !== '' && (
             <TouchableOpacity style={styles.clearButton} onPress={handleClearAll}>
@@ -116,6 +122,24 @@ const HomeScreen = ({ navigation }) => {
 
 const BigWordScreen = ({ route, navigation }) => {
   const { text, selectedAnimation, backgroundColor } = route.params;
+
+  useEffect(() => {
+    // Lock the screen to landscape mode when the component mounts
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+
+    // Unlock the screen orientation when the component unmounts
+    return () => {
+      ScreenOrientation.unlockAsync();
+    };
+  }, []);
+
+  const calculateFontSize = (text) => {
+    if (text.length <= 5) {
+      return 100;
+    } else {
+      return Math.floor(500 / text.length);
+    }
+  };
 
   const animationSources = {
     Hello: require('./assets/animations/Animation - 1711149112180.json'),
@@ -136,7 +160,7 @@ const BigWordScreen = ({ route, navigation }) => {
         />
       )}
       <ScrollView vertical>
-        <Text style={styles.bigText}>{text}</Text>
+        <Text numberOfLines={5} style={styles.bigText} ellipsizeMode='clip'>{text}</Text>
       </ScrollView>
       <View style={styles.backButtonContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -174,6 +198,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
+    marginBottom: 170
   },
   buttonText: {
     color: 'white',
@@ -203,19 +228,26 @@ const styles = StyleSheet.create({
   bigText: {
     fontSize: 100,
     fontWeight: 'bold',
+    justifyContent: 'center',
+    textAlign: 'center',
+    minWidth: 50,
+    overflow: 'hidden',
   },
   backButtonContainer: {
     position: 'absolute',
     bottom: 20,
   },
   backButton: {
-    backgroundColor: 'gray',
+   backgroundColor: 'transparent', 
+    borderWidth: 1, 
+    borderColor: 'lightgray',
+    color: 'black',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
   },
   backButtonText: {
-    color: 'white',
+    color: 'gray',
     fontWeight: 'bold',
     fontSize: 18,
   },
