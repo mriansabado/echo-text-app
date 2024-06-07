@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +24,7 @@ const HomeScreen = ({ navigation }) => {
   const [selectedAnimation, setSelectedAnimation] = useState(null);
   const [backgroundColor, setBackgroundColor] = useState('#f7e5e7');
   const [showButtons, setShowButtons] = useState(false);
+  const [isNightMode, setIsNightMode] = useState(false); // State to manage theme
 
   const handleTextChange = (inputText) => {
     setText(inputText);
@@ -91,30 +92,46 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
+  const toggleNightMode = () => {
+    setIsNightMode(!isNightMode);
+  };
+
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <View style={styles.container}>
-        <TouchableOpacity style={styles.dropdownButton} onPress={toggleButtons}>
-          <Text style={styles.dropdownText}>Themes</Text>
-        </TouchableOpacity>
-        {showButtons && renderButtons()}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            onChangeText={handleTextChange}
-            value={text}
-            placeholder="Type your text here"
-            accessibilityHint="Enter your text to see animated results"
-          />
-          {text !== '' && (
-            <TouchableOpacity style={styles.clearButton} onPress={handleClearAll}>
-              <Ionicons name="close" size={24} color="black" />
-            </TouchableOpacity>
-          )}
+        <LottieView
+          source={isNightMode ? require('./assets/animations/Animation-Nighttime.json') : require('./assets/animations/Animation-Daytime.json')}
+          autoPlay
+          loop
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View style={styles.contentContainer}>
+          <View style={styles.switchContainer}>
+            <Text style={styles.switchText}>Night Mode</Text>
+            <Switch value={isNightMode} onValueChange={toggleNightMode} />
+          </View>
+          <TouchableOpacity style={styles.dropdownButton} onPress={toggleButtons}>
+            <Text style={styles.dropdownText}>Themes</Text>
+          </TouchableOpacity>
+          {showButtons && renderButtons()}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              onChangeText={handleTextChange}
+              value={text}
+              placeholder="Type your text here"
+              accessibilityHint="Enter your text to see animated results"
+            />
+            {text !== '' && (
+              <TouchableOpacity style={styles.clearButton} onPress={handleClearAll}>
+                <Ionicons name="close" size={24} color="black" />
+              </TouchableOpacity>
+            )}
+          </View>
+          <TouchableOpacity style={styles.submitButton} onPress={handleEnterPress}>
+            <Text style={styles.buttonText}>Submit</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.submitButton} onPress={handleEnterPress}>
-          <Text style={styles.buttonText}>Submit</Text>
-        </TouchableOpacity>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -178,6 +195,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  switchContainer: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  switchText: {
+    marginRight: 10,
+    fontSize: 16,
+    color: '#ffffff',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -198,7 +233,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
-    marginBottom: 170
+    marginBottom: 170,
   },
   buttonText: {
     color: 'white',
@@ -238,8 +273,8 @@ const styles = StyleSheet.create({
     bottom: 20,
   },
   backButton: {
-   backgroundColor: 'transparent', 
-    borderWidth: 1, 
+    backgroundColor: 'transparent',
+    borderWidth: 1,
     borderColor: 'lightgray',
     color: 'black',
     paddingVertical: 10,
