@@ -74,7 +74,7 @@ const HomeScreen = ({ navigation }) => {
           onPress={() => selectAnimation('Hello')}
           accessibilityLabel="Select Hand Wave Animation"
         >
-          <Text style={styles.buttonText}>Hand Wave</Text>
+          <Text style={styles.buttonText}>H</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={selectedAnimation === 'Alert' ? styles.selectedButton : styles.button}
@@ -91,18 +91,18 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>Celebrate</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={selectedAnimation === 'Warning' ? styles.selectedButton : styles.button}
-          onPress={() => selectAnimation('Warning')}
-          accessibilityLabel="Select Warning Animation"
+          style={selectedAnimation === 'Happy' ? styles.selectedButton : styles.button}
+          onPress={() => selectAnimation('Happy')}
+          accessibilityLabel="Select Happy Animation"
         >
-          <Text style={styles.buttonText}>Warning</Text>
+          <Text style={styles.buttonText}>Happy</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={selectedAnimation === 'CheckMark' ? styles.selectedButton : styles.button}
-          onPress={() => selectAnimation('CheckMark')}
-          accessibilityLabel="Select Check Mark Animation"
+         <TouchableOpacity
+          style={selectedAnimation === 'Sad' ? styles.selectedButton : styles.button}
+          onPress={() => selectAnimation('Sad')}
+          accessibilityLabel="Select Happy Animation"
         >
-          <Text style={styles.buttonText}>Check</Text>
+          <Text style={styles.buttonText}>Sad</Text>
         </TouchableOpacity>
       </View>
     );
@@ -176,11 +176,11 @@ const BigWordScreen = ({ route, navigation }) => {
   };
 
   const animationSources = {
-    Hello: require('./assets/animations/Animation - 1711149112180.json'),
+    Hi: require('./assets/animations/Animation - 1711149112180.json'),
     Alert: require('./assets/animations/Animation - 1709705128416.json'),
     Celebrate: require('./assets/animations/Animation - 1708757997694.json'),
-    Warning: require('./assets/animations/Animation - 1709707129524.json'),
-    CheckMark: require('./assets/animations/Animation - 1709707194363.json'),
+    Happy: require('./assets/animations/happy.json'),
+    Sad: require('./assets/animations/sad.json'),
   };
 
   return (
