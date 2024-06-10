@@ -70,11 +70,11 @@ const HomeScreen = ({ navigation }) => {
     return (
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={selectedAnimation === 'Hello' ? styles.selectedButton : styles.button}
-          onPress={() => selectAnimation('Hello')}
+          style={selectedAnimation === 'Hi' ? styles.selectedButton : styles.button}
+          onPress={() => selectAnimation('Hi')}
           accessibilityLabel="Select Hand Wave Animation"
         >
-          <Text style={styles.buttonText}>H</Text>
+          <Text style={styles.buttonText}>Hi</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={selectedAnimation === 'Alert' ? styles.selectedButton : styles.button}
@@ -103,6 +103,20 @@ const HomeScreen = ({ navigation }) => {
           accessibilityLabel="Select Happy Animation"
         >
           <Text style={styles.buttonText}>Sad</Text>
+        </TouchableOpacity>
+         <TouchableOpacity
+          style={selectedAnimation === 'Thinking' ? styles.selectedButton : styles.button}
+          onPress={() => selectAnimation('Thinking')}
+          accessibilityLabel="Select Thinking Animation"
+        >
+          <Text style={styles.buttonText}>Thinking</Text>
+        </TouchableOpacity>
+         <TouchableOpacity
+          style={selectedAnimation === 'Love' ? styles.selectedButton : styles.button}
+          onPress={() => selectAnimation('Love')}
+          accessibilityLabel="Select Love Animation"
+        >
+          <Text style={styles.buttonText}>Love</Text>
         </TouchableOpacity>
       </View>
     );
@@ -136,7 +150,7 @@ const HomeScreen = ({ navigation }) => {
               onChangeText={handleTextChange}
               value={text}
               placeholder="Type your text here"
-              placeholderTextColor={isNightMode ? "#bbb" : "#666"} // Adjust placeholder text color for night mode
+              placeholderTextColor={isNightMode ? "#bbb" : "#666"} 
               accessibilityHint="Enter your text to see animated results"
             />
             {text !== '' && (
@@ -181,6 +195,8 @@ const BigWordScreen = ({ route, navigation }) => {
     Celebrate: require('./assets/animations/Animation - 1708757997694.json'),
     Happy: require('./assets/animations/happy.json'),
     Sad: require('./assets/animations/sad.json'),
+    Thinking: require('./assets/animations/thinking.json'),
+    Love: require('./assets/animations/love.json'),
   };
 
   return (
