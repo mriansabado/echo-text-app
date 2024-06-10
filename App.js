@@ -25,6 +25,22 @@ const HomeScreen = ({ navigation }) => {
   const [backgroundColor, setBackgroundColor] = useState('#f7e5e7');
   const [showButtons, setShowButtons] = useState(false);
   const [isNightMode, setIsNightMode] = useState(false); // State to manage theme
+  
+
+  useEffect(() => {
+    const lockOrientation = async () => {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP); // Lock to portrait mode
+    };
+
+    lockOrientation(); // Call the lockOrientation function
+
+    // Unlock the screen orientation when the component unmounts
+    return () => {
+      ScreenOrientation.unlockAsync();
+    };
+  }, []);
+
+
 
   const handleTextChange = (inputText) => {
     setText(inputText);
@@ -116,10 +132,11 @@ const HomeScreen = ({ navigation }) => {
           {showButtons && renderButtons()}
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, isNightMode && styles.inputNightMode]}
               onChangeText={handleTextChange}
               value={text}
               placeholder="Type your text here"
+              placeholderTextColor={isNightMode ? "#bbb" : "#666"} // Adjust placeholder text color for night mode
               accessibilityHint="Enter your text to see animated results"
             />
             {text !== '' && (
@@ -204,7 +221,7 @@ const styles = StyleSheet.create({
   switchContainer: {
     position: 'absolute',
     top: 40,
-    left: 20,
+    right: 20,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -224,6 +241,11 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     padding: 10,
     marginRight: 10,
+    color: '#000', // Default text color
+  },
+  inputNightMode: {
+    color: '#fff', // Text color for night mode
+    borderColor: '#fff', // Border color for night mode
   },
   clearButton: {
     padding: 10,
