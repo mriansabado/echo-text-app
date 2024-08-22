@@ -24,7 +24,7 @@ const HomeScreen = ({ navigation }) => {
   const [selectedAnimation, setSelectedAnimation] = useState(null);
   const [backgroundColor, setBackgroundColor] = useState('#f7e5e7');
   const [showButtons, setShowButtons] = useState(false);
-  const [isNightMode, setIsNightMode] = useState(false); // State to manage theme
+  const [isNightMode, setIsNightMode] = useState(false); // State to manage themes
   
 
   useEffect(() => {
