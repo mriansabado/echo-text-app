@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "bigword-react-native",
-    "slug": "bigtex",
+    "slug": "fontastic",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -30,15 +30,15 @@
     },
     "extra": {
       "eas": {
-        "projectId": "5410a3dd-9530-4f9e-8393-7205a629f26b"
+        "projectId": "46bb1139-8352-4631-b16b-7e1ec8b80edb"
       }
     },
     "owner": "iandev808",
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "1.0.0"
     },
     "updates": {
-      "url": "https://u.expo.dev/5410a3dd-9530-4f9e-8393-7205a629f26b"
+      "url": "https://u.expo.dev/46bb1139-8352-4631-b16b-7e1ec8b80edb"
     }
   }
 }

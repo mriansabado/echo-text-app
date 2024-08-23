@@ -12,8 +12,8 @@ const BigWordApp = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="BigTex" component={HomeScreen} />
-        <Stack.Screen name="BigTexResults" component={BigWordScreen} />
+        <Stack.Screen name="Fontastic" component={HomeScreen} />
+        <Stack.Screen name="FontasticResults" component={BigWordScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -47,7 +47,7 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const handleEnterPress = () => {
-    navigation.navigate('BigTexResults', { text, selectedAnimation, backgroundColor });
+    navigation.navigate('FontasticResults', { text, selectedAnimation, backgroundColor });
   };
 
   const handleClearAll = () => {
