@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,18 +24,23 @@ const HomeScreen = ({ navigation }) => {
   const [selectedAnimation, setSelectedAnimation] = useState(null);
   const [backgroundColor, setBackgroundColor] = useState('#f7e5e7');
   const [showButtons, setShowButtons] = useState(false);
-  const [isNightMode, setIsNightMode] = useState(false); // State to manage themes
+  const [isNightMode, setIsNightMode] = useState(false);
+  const [dimensions, setDimensions] = useState(Dimensions.get('window'));
   
 
   useEffect(() => {
     const lockOrientation = async () => {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP); // Lock to portrait mode
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     };
 
-    lockOrientation(); // Call the lockOrientation function
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      setDimensions(window);
+    });
 
-    // Unlock the screen orientation when the component unmounts
+    lockOrientation();
+
     return () => {
+      subscription.remove();
       ScreenOrientation.unlockAsync();
     };
   }, []);
@@ -133,35 +138,45 @@ const HomeScreen = ({ navigation }) => {
           source={isNightMode ? require('./assets/animations/Animation-Nighttime.json') : require('./assets/animations/Animation-Daytime.json')}
           autoPlay
           loop
-          style={StyleSheet.absoluteFillObject}
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
         />
-        <View style={styles.contentContainer}>
+        <View style={[styles.contentContainer, { height: dimensions.height }]}>
           <View style={styles.switchContainer}>
             <Text style={styles.switchText}>Night Mode</Text>
             <Switch value={isNightMode} onValueChange={toggleNightMode} />
           </View>
-          <TouchableOpacity style={styles.dropdownButton} onPress={toggleButtons}>
-            <Text style={styles.dropdownText}>Themes</Text>
-          </TouchableOpacity>
-          {showButtons && renderButtons()}
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[styles.input, isNightMode && styles.inputNightMode]}
-              onChangeText={handleTextChange}
-              value={text}
-              placeholder="Type your text here"
-              placeholderTextColor={isNightMode ? "#bbb" : "#666"} 
-              accessibilityHint="Enter your text to see animated results"
-            />
-            {text !== '' && (
-              <TouchableOpacity style={styles.clearButton} onPress={handleClearAll}>
-                <Ionicons name="close" size={24} color="black" />
-              </TouchableOpacity>
-            )}
+          <View style={styles.mainContent}>
+            <TouchableOpacity style={styles.dropdownButton} onPress={toggleButtons}>
+              <Text style={styles.dropdownText}>Themes</Text>
+            </TouchableOpacity>
+            {showButtons && renderButtons()}
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={[styles.input, isNightMode && styles.inputNightMode]}
+                onChangeText={handleTextChange}
+                value={text}
+                placeholder="Type your text here"
+                placeholderTextColor={isNightMode ? "#bbb" : "#666"} 
+                accessibilityHint="Enter your text to see animated results"
+              />
+              {text !== '' && (
+                <TouchableOpacity style={styles.clearButton} onPress={handleClearAll}>
+                  <Ionicons name="close" size={24} color={isNightMode ? "#fff" : "#000"} />
+                </TouchableOpacity>
+              )}
+            </View>
+            <TouchableOpacity style={styles.submitButton} onPress={handleEnterPress}>
+              <Text style={styles.buttonText}>Submit</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.submitButton} onPress={handleEnterPress}>
-            <Text style={styles.buttonText}>Submit</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </TouchableWithoutFeedback>
@@ -224,79 +239,107 @@ const BigWordScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    backgroundColor: '#fff',
   },
   contentContainer: {
     flex: 1,
+    width: '100%',
+  },
+  mainContent: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
+    paddingHorizontal: 20,
+    paddingTop: 100,
   },
   switchContainer: {
     position: 'absolute',
-    top: 40,
-    right: 20,
+    top: 0,
+    right: 0,
+    left: 0,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
+    padding: 20,
+    paddingTop: 50,
+    zIndex: 1,
   },
   switchText: {
     marginRight: 10,
     fontSize: 16,
     color: '#ffffff',
+    fontWeight: '600',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    width: '100%',
+    maxWidth: 500,
+    marginBottom: 20,
   },
   input: {
     flex: 1,
     borderWidth: 1,
     borderColor: 'gray',
-    padding: 10,
-    marginRight: 10,
-    color: '#000', // Default text color
+    padding: 15,
+    borderRadius: 10,
+    fontSize: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   inputNightMode: {
-    color: '#fff', // Text color for night mode
-    borderColor: '#fff', // Border color for night mode
+    color: '#fff',
+    borderColor: '#fff',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   clearButton: {
-    padding: 10,
+    position: 'absolute',
+    right: 10,
+    padding: 5,
   },
   submitButton: {
     backgroundColor: 'blue',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
     borderRadius: 10,
-    marginBottom: 170,
+    marginTop: 10,
   },
   buttonText: {
     color: 'white',
     fontWeight: 'bold',
+    fontSize: 16,
   },
   buttonContainer: {
-    display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'center',
     flexWrap: 'wrap',
-    width: '80%',
+    justifyContent: 'center',
     gap: 10,
-    marginBottom: 20,
+    marginVertical: 20,
+    width: '100%',
+    maxWidth: 500,
   },
   button: {
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     backgroundColor: 'gray',
+    minWidth: 80,
   },
   selectedButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     backgroundColor: 'green',
+    minWidth: 80,
+  },
+  dropdownButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  dropdownText: {
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   bigText: {
     fontSize: 100,
@@ -332,15 +375,6 @@ const styles = StyleSheet.create({
     height: 200,
     marginLeft: -100,
     marginTop: -100,
-  },
-  dropdownButton: {
-    marginBottom: 10,
-    backgroundColor: 'lightgray',
-    padding: 10,
-    borderRadius: 5,
-  },
-  dropdownText: {
-    fontWeight: 'bold',
   },
 });
 

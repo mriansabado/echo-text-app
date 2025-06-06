@@ -34,9 +34,7 @@
       }
     },
     "owner": "iandev808",
-    "runtimeVersion": {
-      "policy": "1.0.0"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/46bb1139-8352-4631-b16b-7e1ec8b80edb"
     }
