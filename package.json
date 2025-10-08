@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
+    "@lottiefiles/dotlottie-react": "^0.13.5",
     "@react-navigation/native": "^6.1.10",
     "@react-navigation/stack": "^6.3.21",
     "expo": "~54.0.0",
