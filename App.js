@@ -63,68 +63,49 @@ const HomeScreen = ({ navigation }) => {
     setSelectedAnimation(selectedAnimation === animation ? null : animation);
   };
 
-  const toggleButtons = () => {
-    setShowButtons(!showButtons);
-  };
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
 
-  const renderButtons = () => {
-    return (
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={selectedAnimation === 'Hi' ? styles.selectedButton : styles.button}
-          onPress={() => selectAnimation('Hi')}
-          accessibilityLabel="Select Hand Wave Animation"
-        >
-          <Text style={styles.buttonText}>Hi</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={selectedAnimation === 'Alert' ? styles.selectedButton : styles.button}
-          onPress={() => selectAnimation('Alert')}
-          accessibilityLabel="Select Alert Animation"
-        >
-          <Text style={styles.buttonText}>Alert</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={selectedAnimation === 'Celebrate' ? styles.selectedButton : styles.button}
-          onPress={() => selectAnimation('Celebrate')}
-          accessibilityLabel="Select Celebrate Animation"
-        >
-          <Text style={styles.buttonText}>Celebrate</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={selectedAnimation === 'Happy' ? styles.selectedButton : styles.button}
-          onPress={() => selectAnimation('Happy')}
-          accessibilityLabel="Select Happy Animation"
-        >
-          <Text style={styles.buttonText}>Happy</Text>
-        </TouchableOpacity>
-         <TouchableOpacity
-          style={selectedAnimation === 'Sad' ? styles.selectedButton : styles.button}
-          onPress={() => selectAnimation('Sad')}
-          accessibilityLabel="Select Happy Animation"
-        >
-          <Text style={styles.buttonText}>Sad</Text>
-        </TouchableOpacity>
-         <TouchableOpacity
-          style={selectedAnimation === 'Thinking' ? styles.selectedButton : styles.button}
-          onPress={() => selectAnimation('Thinking')}
-          accessibilityLabel="Select Thinking Animation"
-        >
-          <Text style={styles.buttonText}>Thinking</Text>
-        </TouchableOpacity>
-         <TouchableOpacity
-          style={selectedAnimation === 'Love' ? styles.selectedButton : styles.button}
-          onPress={() => selectAnimation('Love')}
-          accessibilityLabel="Select Love Animation"
-        >
-          <Text style={styles.buttonText}>Love</Text>
-        </TouchableOpacity>
-      </View>
-    );
+  const renderThemeCards = () => {
+    const themes = [
+      { key: 'Hi', label: 'Wave', emoji: '👋', color: '#4CAF50' },
+      { key: 'Alert', label: 'Alert', emoji: '⚠️', color: '#FF9800' },
+      { key: 'Celebrate', label: 'Party', emoji: '🎉', color: '#E91E63' },
+      { key: 'Happy', label: 'Happy', emoji: '😊', color: '#FFEB3B' },
+      { key: 'Sad', label: 'Sad', emoji: '😢', color: '#2196F3' },
+      { key: 'Thinking', label: 'Think', emoji: '🤔', color: '#9C27B0' },
+      { key: 'Love', label: 'Love', emoji: '❤️', color: '#F44336' },
+    ];
+
+    return themes.map((theme) => (
+      <TouchableOpacity
+        key={theme.key}
+        style={[
+          styles.themeCard,
+          selectedAnimation === theme.key && styles.selectedThemeCard,
+          { borderColor: theme.color }
+        ]}
+        onPress={() => selectAnimation(theme.key)}
+        accessibilityLabel={`Select ${theme.label} theme`}
+      >
+        <View style={[styles.themeEmoji, { backgroundColor: theme.color + '20' }]}>
+          <Text style={styles.emojiText}>{theme.emoji}</Text>
+          {selectedAnimation === theme.key && (
+            <View style={styles.checkmarkContainer}>
+              <Ionicons name="checkmark" size={16} color="#007AFF" />
+            </View>
+          )}
+        </View>
+        <Text style={[
+          styles.themeLabel,
+          selectedAnimation === theme.key && styles.selectedThemeLabel
+        ]}>
+          {theme.label}
+        </Text>
+      </TouchableOpacity>
+    ));
   };
 
   const toggleNightMode = (value) => {
@@ -180,10 +161,24 @@ const HomeScreen = ({ navigation }) => {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              <TouchableOpacity style={styles.dropdownButton} onPress={toggleButtons}>
-                <Text style={styles.dropdownText}>Themes</Text>
-              </TouchableOpacity>
-              {showButtons && renderButtons()}
+            <View style={styles.themeSection}>
+              <View style={styles.themeTitleContainer}>
+                <Ionicons name="chevron-back" size={16} color="#666" />
+                <Text style={styles.themeSectionTitle}>Choose Theme</Text>
+                <Ionicons name="chevron-forward" size={16} color="#666" />
+              </View>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.themeScrollContainer}
+                decelerationRate="fast"
+                snapToInterval={90}
+                snapToAlignment="start"
+                bounces={false}
+              >
+                {renderThemeCards()}
+              </ScrollView>
+            </View>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={[styles.input, isNightMode && styles.inputNightMode]}
@@ -377,38 +372,93 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 10,
-    marginVertical: 10,
+  themeSection: {
     width: '100%',
-    maxWidth: 500,
+    marginBottom: 15,
   },
-  button: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    backgroundColor: 'gray',
-    minWidth: 80,
-  },
-  selectedButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    backgroundColor: 'green',
-    minWidth: 80,
-  },
-  dropdownButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    padding: 15,
-    borderRadius: 10,
+  themeTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 10,
   },
-  dropdownText: {
-    fontWeight: 'bold',
+  themeSectionTitle: {
     fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginHorizontal: 8,
+  },
+  themeScrollContainer: {
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+  },
+  themeCard: {
+    width: 80,
+    height: 100,
+    marginHorizontal: 5,
+    borderRadius: 12,
+    borderWidth: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  selectedThemeCard: {
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+    shadowOpacity: 0.4,
+    elevation: 10,
+    transform: [{ scale: 1.08 }],
+    borderWidth: 3,
+    borderColor: '#007AFF',
+  },
+  themeEmoji: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  emojiText: {
+    fontSize: 24,
+  },
+  checkmarkContainer: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  themeLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#666',
+    textAlign: 'center',
+  },
+  selectedThemeLabel: {
+    color: '#000',
+    fontWeight: '700',
+    fontSize: 13,
   },
   bigText: {
     fontSize: 100,
