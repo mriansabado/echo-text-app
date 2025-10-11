@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -127,67 +127,85 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
-  const toggleNightMode = () => {
-    setIsNightMode(!isNightMode);
+  const toggleNightMode = (value) => {
+    console.log('Night mode toggled:', value);
+    setIsNightMode(value);
   };
 
   return (
-    <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <View style={styles.container}>
-        <LottieView
-          source={isNightMode ? require('./assets/animations/Animation-Nighttime.json') : require('./assets/animations/Animation-Daytime.json')}
-          autoPlay
-          loop
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          }}
-        />
-        <KeyboardAvoidingView 
-          style={[styles.contentContainer, { height: dimensions.height }]}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
-          <View style={styles.switchContainer}>
-            <Text style={styles.switchText}>Night Mode</Text>
-            <Switch value={isNightMode} onValueChange={toggleNightMode} />
-          </View>
-          <ScrollView 
-            contentContainerStyle={styles.mainContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
+    <View style={styles.container}>
+      <LottieView
+        source={isNightMode ? require('./assets/animations/Animation-Nighttime.json') : require('./assets/animations/Animation-Daytime.json')}
+        autoPlay
+        loop
+        style={{
+          position: 'absolute',
+          width: dimensions.width + 100,
+          height: dimensions.height + 100,
+          top: -50,
+          left: -50,
+          right: -50,
+          bottom: -50,
+        }}
+      />
+      <KeyboardAvoidingView 
+        style={[styles.contentContainer, { height: dimensions.height }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={styles.switchContainer}>
+          <Text style={styles.switchText}>Night: {isNightMode ? 'ON' : 'OFF'}</Text>
+          <TouchableOpacity 
+            onPress={() => {
+              console.log('Switch tapped, current state:', isNightMode);
+              setIsNightMode(!isNightMode);
+            }}
+            style={styles.switchButton}
           >
-            <TouchableOpacity style={styles.dropdownButton} onPress={toggleButtons}>
-              <Text style={styles.dropdownText}>Themes</Text>
-            </TouchableOpacity>
-            {showButtons && renderButtons()}
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={[styles.input, isNightMode && styles.inputNightMode]}
-                onChangeText={handleTextChange}
-                value={text}
-                placeholder="Type your text here"
-                placeholderTextColor={isNightMode ? "#bbb" : "#666"} 
-                accessibilityHint="Enter your text to see animated results"
-              />
-              {text !== '' && (
-                <TouchableOpacity style={styles.clearButton} onPress={handleClearAll}>
-                  <Ionicons name="close" size={24} color={isNightMode ? "#fff" : "#000"} />
-                </TouchableOpacity>
-              )}
+            <View style={[styles.switchTrack, isNightMode && styles.switchTrackActive]}>
+              <View style={[styles.switchThumb, isNightMode && styles.switchThumbActive]} />
             </View>
-            <TouchableOpacity style={styles.submitButton} onPress={handleEnterPress}>
-              <Text style={styles.buttonText}>Submit</Text>
-            </TouchableOpacity>
-          </ScrollView>
+          </TouchableOpacity>
+        </View>
+          <View style={styles.logoContainer}>
+            <Image 
+              source={require('./assets/logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+          <TouchableWithoutFeedback onPress={dismissKeyboard}>
+            <ScrollView 
+              contentContainerStyle={styles.mainContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <TouchableOpacity style={styles.dropdownButton} onPress={toggleButtons}>
+                <Text style={styles.dropdownText}>Themes</Text>
+              </TouchableOpacity>
+              {showButtons && renderButtons()}
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={[styles.input, isNightMode && styles.inputNightMode]}
+                  onChangeText={handleTextChange}
+                  value={text}
+                  placeholder="Type your text here"
+                  placeholderTextColor={isNightMode ? "#bbb" : "#666"} 
+                  accessibilityHint="Enter your text to see animated results"
+                />
+                {text !== '' && (
+                  <TouchableOpacity style={styles.clearButton} onPress={handleClearAll}>
+                    <Ionicons name="close" size={24} color={isNightMode ? "#fff" : "#000"} />
+                  </TouchableOpacity>
+                )}
+              </View>
+              <TouchableOpacity style={styles.submitButton} onPress={handleEnterPress}>
+                <Text style={styles.buttonText}>Submit</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </View>
-    </TouchableWithoutFeedback>
   );
 };
 
@@ -262,34 +280,71 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 120,
+    paddingTop: 20,
     paddingBottom: 50,
   },
   switchContainer: {
     position: 'absolute',
     top: 0,
     right: 0,
-    left: 0,
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     padding: 20,
     paddingTop: 50,
-    zIndex: 1,
+    zIndex: 10,
+    maxWidth: '30%',
   },
   switchText: {
-    marginRight: 10,
-    fontSize: 16,
+    marginBottom: 5,
+    fontSize: 12,
     color: '#ffffff',
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  switchButton: {
+    padding: 5,
+  },
+  switchTrack: {
+    width: 50,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#767577',
+    justifyContent: 'center',
+    padding: 2,
+  },
+  switchTrackActive: {
+    backgroundColor: '#81b0ff',
+  },
+  switchThumb: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#f4f3f4',
+    alignSelf: 'flex-start',
+  },
+  switchThumbActive: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#f5dd4b',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 10,
+    paddingHorizontal: 20,
+    zIndex: 1,
+  },
+  logo: {
+    width: 200,
+    height: 80,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
     maxWidth: 500,
-    marginBottom: 20,
-    marginTop: 20,
+    marginBottom: 15,
+    marginTop: 10,
   },
   input: {
     flex: 1,
@@ -327,7 +382,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: 10,
-    marginVertical: 20,
+    marginVertical: 10,
     width: '100%',
     maxWidth: 500,
   },
@@ -349,7 +404,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     padding: 15,
     borderRadius: 10,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   dropdownText: {
     fontWeight: 'bold',
