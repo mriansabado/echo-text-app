@@ -5,6 +5,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { Audio } from 'expo-av';
+import { StatusBar } from 'expo-status-bar';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +32,7 @@ const HomeScreen = ({ navigation }) => {
   const [showButtons, setShowButtons] = useState(false);
   const [isNightMode, setIsNightMode] = useState(false);
   const [dimensions, setDimensions] = useState(Dimensions.get('window'));
+  const [sound, setSound] = useState();
   
 
   useEffect(() => {
@@ -49,6 +52,16 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
+  const playSound = async (soundFile) => {
+    try {
+      const { sound: newSound } = await Audio.Sound.createAsync(soundFile);
+      setSound(newSound);
+      await newSound.playAsync();
+    } catch (error) {
+      console.log('Error playing sound:', error);
+    }
+  };
+
 
 
   const handleTextChange = (inputText) => {
@@ -56,7 +69,9 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const handleEnterPress = () => {
-    navigation.navigate('FontasticResults', { text, selectedAnimation, backgroundColor });
+    // playSound(require('./assets/sounds/submit.mp3')); // Uncomment when you add submit.mp3
+    const resultsBackgroundColor = isNightMode ? '#1e3a8a' : backgroundColor;
+    navigation.navigate('FontasticResults', { text, selectedAnimation, backgroundColor: resultsBackgroundColor });
   };
 
   const handleClearAll = () => {
@@ -119,6 +134,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" backgroundColor="transparent" translucent />
       <LottieView
         source={isNightMode ? require('./assets/animations/Animation-Nighttime.json') : require('./assets/animations/Animation-Daytime.json')}
         autoPlay
@@ -126,8 +142,8 @@ const HomeScreen = ({ navigation }) => {
         style={{
           position: 'absolute',
           width: dimensions.width + 100,
-          height: dimensions.height + 100,
-          top: -50,
+          height: dimensions.height + 150,
+          top: -100,
           left: -50,
           right: -50,
           bottom: -50,
@@ -168,7 +184,7 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.themeSection}>
               <View style={styles.themeTitleContainer}>
                 <Ionicons name="chevron-back" size={16} color="#666" />
-                <Text style={styles.themeSectionTitle}>Choose Theme</Text>
+                <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#ffffff' : '#333' }]}>Choose Theme</Text>
                 <Ionicons name="chevron-forward" size={16} color="#666" />
               </View>
               <ScrollView 
@@ -210,10 +226,27 @@ const HomeScreen = ({ navigation }) => {
 
 const FontasticScreen = ({ route, navigation }) => {
   const { text, selectedAnimation, backgroundColor } = route.params;
+  const [sound, setSound] = useState();
+  
+  // Determine if it's night mode based on background color
+  const isNightMode = backgroundColor === '#1e3a8a';
+
+  const playSound = async (soundFile) => {
+    try {
+      const { sound: newSound } = await Audio.Sound.createAsync(soundFile);
+      setSound(newSound);
+      await newSound.playAsync();
+    } catch (error) {
+      console.log('Error playing sound:', error);
+    }
+  };
 
   useEffect(() => {
     // Lock the screen to landscape mode when the component mounts
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    
+    // Play display sound when the large text shows
+    // playSound(require('./assets/sounds/display.mp3'));
 
     // Unlock the screen orientation when the component unmounts
     return () => {
@@ -254,7 +287,7 @@ const FontasticScreen = ({ route, navigation }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text numberOfLines={5} style={styles.bigText} ellipsizeMode='clip'>{text}</Text>
+        <Text numberOfLines={5} style={[styles.bigText, { color: isNightMode ? '#ffffff' : '#000000' }]} ellipsizeMode='clip'>{text}</Text>
       </ScrollView>
       <View style={styles.backButtonContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -268,7 +301,7 @@ const FontasticScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
   },
   contentContainer: {
     flex: 1,
@@ -328,7 +361,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 10,
     paddingHorizontal: 20,
     zIndex: 1,
