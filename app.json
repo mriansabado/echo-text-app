@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "bigword-react-native",
+    "name": "Fontastic",
     "slug": "fontastic",
     "version": "1.0.0",
     "orientation": "default",
@@ -16,14 +16,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.iandev808.bigtex"
+      "bundleIdentifier": "com.iandev808.fontastic"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.iandev808.bigtex"
+      "package": "com.iandev808.fontastic"
     },
     "web": {
       "favicon": "./assets/favicon.png"

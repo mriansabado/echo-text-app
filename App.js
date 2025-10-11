@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,12 +8,12 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 
 const Stack = createStackNavigator();
 
-const BigWordApp = () => {
+const FontasticApp = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Fontastic" component={HomeScreen} />
-        <Stack.Screen name="FontasticResults" component={BigWordScreen} />
+        <Stack.Screen name="FontasticResults" component={FontasticScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -148,12 +148,20 @@ const HomeScreen = ({ navigation }) => {
             bottom: 0,
           }}
         />
-        <View style={[styles.contentContainer, { height: dimensions.height }]}>
+        <KeyboardAvoidingView 
+          style={[styles.contentContainer, { height: dimensions.height }]}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
           <View style={styles.switchContainer}>
             <Text style={styles.switchText}>Night Mode</Text>
             <Switch value={isNightMode} onValueChange={toggleNightMode} />
           </View>
-          <View style={styles.mainContent}>
+          <ScrollView 
+            contentContainerStyle={styles.mainContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <TouchableOpacity style={styles.dropdownButton} onPress={toggleButtons}>
               <Text style={styles.dropdownText}>Themes</Text>
             </TouchableOpacity>
@@ -176,14 +184,14 @@ const HomeScreen = ({ navigation }) => {
             <TouchableOpacity style={styles.submitButton} onPress={handleEnterPress}>
               <Text style={styles.buttonText}>Submit</Text>
             </TouchableOpacity>
-          </View>
-        </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </View>
     </TouchableWithoutFeedback>
   );
 };
 
-const BigWordScreen = ({ route, navigation }) => {
+const FontasticScreen = ({ route, navigation }) => {
   const { text, selectedAnimation, backgroundColor } = route.params;
 
   useEffect(() => {
@@ -224,7 +232,11 @@ const BigWordScreen = ({ route, navigation }) => {
           style={styles.animation}
         />
       )}
-      <ScrollView vertical>
+      <ScrollView 
+        vertical
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <Text numberOfLines={5} style={styles.bigText} ellipsizeMode='clip'>{text}</Text>
       </ScrollView>
       <View style={styles.backButtonContainer}>
@@ -246,11 +258,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   mainContent: {
-    flex: 1,
-    justifyContent: 'center',
+    flexGrow: 1,
+    justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 100,
+    paddingTop: 120,
+    paddingBottom: 50,
   },
   switchContainer: {
     position: 'absolute',
@@ -276,6 +289,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 500,
     marginBottom: 20,
+    marginTop: 20,
   },
   input: {
     flex: 1,
@@ -349,23 +363,31 @@ const styles = StyleSheet.create({
     minWidth: 50,
     overflow: 'hidden',
   },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 80,
+  },
   backButtonContainer: {
     position: 'absolute',
     bottom: 20,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
   backButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: 'lightgray',
-    color: 'black',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    borderColor: '#666',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
   backButtonText: {
-    color: 'gray',
-    fontWeight: 'bold',
-    fontSize: 18,
+    color: '#666',
+    fontWeight: '500',
+    fontSize: 14,
   },
   animation: {
     position: 'absolute',
@@ -378,4 +400,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BigWordApp;
+export default FontasticApp;
