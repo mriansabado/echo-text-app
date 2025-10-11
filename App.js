@@ -13,7 +13,11 @@ const FontasticApp = () => {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Fontastic" component={HomeScreen} />
-        <Stack.Screen name="FontasticResults" component={FontasticScreen} />
+        <Stack.Screen 
+          name="FontasticResults" 
+          component={FontasticScreen} 
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -470,8 +474,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    paddingTop: -40,
     paddingBottom: 80,
   },
   backButtonContainer: {
