@@ -274,6 +274,17 @@ const FontasticScreen = ({ route, navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
+      <ScrollView 
+        vertical
+        contentContainerStyle={[
+          styles.scrollContent,
+          selectedAnimation && styles.scrollContentWithAnimation
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text numberOfLines={5} style={[styles.bigText, { color: isNightMode ? '#ffffff' : '#000000' }]} ellipsizeMode='clip'>{text}</Text>
+      </ScrollView>
+      
       {selectedAnimation && (
         <LottieView
           source={animationSources[selectedAnimation]}
@@ -282,13 +293,7 @@ const FontasticScreen = ({ route, navigation }) => {
           style={styles.animation}
         />
       )}
-      <ScrollView 
-        vertical
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text numberOfLines={5} style={[styles.bigText, { color: isNightMode ? '#ffffff' : '#000000' }]} ellipsizeMode='clip'>{text}</Text>
-      </ScrollView>
+      
       <View style={styles.backButtonContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Back to text</Text>
@@ -507,10 +512,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: -40,
-    paddingBottom: 80,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  scrollContentWithAnimation: {
+    paddingRight: 220, // Give space for the animation when one is selected
   },
   backButtonContainer: {
     position: 'absolute',
@@ -535,11 +543,11 @@ const styles = StyleSheet.create({
   animation: {
     position: 'absolute',
     top: '50%',
-    left: '45%',
-    width: 300,
-    height: 200,
-    marginLeft: -100,
-    marginTop: -100,
+    right: 20,
+    width: 200,
+    height: 150,
+    marginTop: -75, // Half of height to center it vertically
+    zIndex: 1,
   },
 });
 
