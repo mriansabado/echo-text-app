@@ -65,7 +65,10 @@ const HomeScreen = ({ navigation }) => {
 
 
   const handleTextChange = (inputText) => {
-    setText(inputText);
+    // Only allow text changes if under 80 characters or if deleting characters
+    if (inputText.length <= 80) {
+      setText(inputText);
+    }
   };
 
   const handleEnterPress = () => {
@@ -201,13 +204,28 @@ const HomeScreen = ({ navigation }) => {
             </View>
               <View style={styles.inputContainer}>
                 <TextInput
-                  style={[styles.input, isNightMode && styles.inputNightMode]}
+                  style={[
+                    styles.input, 
+                    isNightMode && styles.inputNightMode,
+                    text.length >= 80 && styles.inputLimitReached
+                  ]}
                   onChangeText={handleTextChange}
                   value={text}
                   placeholder="Type your text here"
                   placeholderTextColor={isNightMode ? "#bbb" : "#666"} 
                   accessibilityHint="Enter your text to see animated results"
+                  maxLength={80}
+                  multiline={true}
                 />
+                {text.length > 0 && (
+                  <Text style={[
+                    styles.characterCount, 
+                    isNightMode && styles.characterCountNight,
+                    text.length >= 80 && styles.characterCountLimitReached
+                  ]}>
+                    {text.length}/80
+                  </Text>
+                )}
                 {text !== '' && (
                   <TouchableOpacity style={styles.clearButton} onPress={handleClearAll}>
                     <Ionicons name="close" size={24} color={isNightMode ? "#fff" : "#000"} />
@@ -391,16 +409,37 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     fontSize: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    height: 80,
+    textAlignVertical: 'top',
   },
   inputNightMode: {
     color: '#fff',
     borderColor: '#fff',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
+  inputLimitReached: {
+    borderColor: '#ff4444',
+    borderWidth: 2,
+  },
   clearButton: {
     position: 'absolute',
     right: 10,
+    bottom: 5,
     padding: 5,
+  },
+  characterCount: {
+    position: 'absolute',
+    right: 50,
+    bottom: 5,
+    fontSize: 12,
+    color: '#666',
+  },
+  characterCountNight: {
+    color: '#bbb',
+  },
+  characterCountLimitReached: {
+    color: '#ff4444',
+    fontWeight: 'bold',
   },
   submitButton: {
     backgroundColor: 'blue',
