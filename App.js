@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform, Image, SafeAreaView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -52,6 +52,23 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
+  // Update navigation header colors based on in-app Night mode
+  useEffect(() => {
+    navigation.setOptions({
+      headerStyle: { backgroundColor: isNightMode ? '#000000' : '#eaf2ff' },
+      headerTitleStyle: { color: isNightMode ? '#ffffff' : '#000000' },
+      headerTintColor: isNightMode ? '#ffffff' : '#000000',
+      headerTitle: () => (
+        <Image
+          source={isNightMode ? require('./assets/fontastic-text-dark.png') : require('./assets/fontastic-text.png')}
+          style={{ width: 120, height: 30 }}
+          resizeMode="contain"
+        />
+      ),
+      headerTitleAlign: 'center',
+    });
+  }, [navigation, isNightMode]);
+
   const playSound = async (soundFile) => {
     try {
       const { sound: newSound } = await Audio.Sound.createAsync(soundFile);
@@ -65,8 +82,8 @@ const HomeScreen = ({ navigation }) => {
 
 
   const handleTextChange = (inputText) => {
-    // Only allow text changes if under 80 characters or if deleting characters
-    if (inputText.length <= 80) {
+    // Only allow text changes if under 68 characters or if deleting characters
+    if (inputText.length <= 68) {
       setText(inputText);
     }
   };
@@ -137,7 +154,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor="transparent" translucent />
+      <StatusBar style={isNightMode ? 'light' : 'dark'} backgroundColor={isNightMode ? '#000000' : '#eaf2ff'} />
       <LottieView
         source={isNightMode ? require('./assets/animations/Animation-Nighttime.json') : require('./assets/animations/Animation-Daytime.json')}
         autoPlay
@@ -171,13 +188,6 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </TouchableOpacity>
         </View>
-          <View style={styles.logoContainer}>
-            <Image 
-              source={require('./assets/logo.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
           <TouchableWithoutFeedback onPress={dismissKeyboard}>
             <ScrollView 
               contentContainerStyle={styles.mainContent}
@@ -207,23 +217,23 @@ const HomeScreen = ({ navigation }) => {
                   style={[
                     styles.input, 
                     isNightMode && styles.inputNightMode,
-                    text.length >= 80 && styles.inputLimitReached
+                    text.length >= 68 && styles.inputLimitReached
                   ]}
                   onChangeText={handleTextChange}
                   value={text}
                   placeholder="Type your text here"
                   placeholderTextColor={isNightMode ? "#bbb" : "#666"} 
                   accessibilityHint="Enter your text to see animated results"
-                  maxLength={80}
+                  maxLength={68}
                   multiline={true}
                 />
                 {text.length > 0 && (
                   <Text style={[
                     styles.characterCount, 
                     isNightMode && styles.characterCountNight,
-                    text.length >= 80 && styles.characterCountLimitReached
+                    text.length >= 68 && styles.characterCountLimitReached
                   ]}>
-                    {text.length}/80
+                    {text.length}/68
                   </Text>
                 )}
                 {text !== '' && (
@@ -291,7 +301,7 @@ const FontasticScreen = ({ route, navigation }) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['left', 'right', 'top']}>
       <ScrollView 
         vertical
         contentContainerStyle={[
@@ -308,7 +318,7 @@ const FontasticScreen = ({ route, navigation }) => {
           source={animationSources[selectedAnimation]}
           autoPlay
           loop
-          style={styles.animation}
+          style={!text || text.trim() === '' ? styles.animationCentered : styles.animation}
         />
       )}
       
@@ -317,7 +327,7 @@ const FontasticScreen = ({ route, navigation }) => {
           <Text style={styles.backButtonText}>Back to text</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -335,7 +345,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 100,
     paddingBottom: 50,
   },
   switchContainer: {
@@ -554,7 +564,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
-    paddingHorizontal: 20,
+    paddingLeft: 40, // Extra padding on left to avoid notch/Dynamic Island
+    paddingRight: 20,
   },
   scrollContentWithAnimation: {
     paddingRight: 220, // Give space for the animation when one is selected
@@ -586,6 +597,16 @@ const styles = StyleSheet.create({
     width: 200,
     height: 150,
     marginTop: -75, // Half of height to center it vertically
+    zIndex: 1,
+  },
+  animationCentered: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 200,
+    height: 150,
+    marginTop: -75, // Half of height to center it vertically
+    marginLeft: -100, // Half of width to center it horizontally
     zIndex: 1,
   },
 });
