@@ -75,7 +75,9 @@ const HomeScreen = ({ navigation }) => {
       setSound(newSound);
       await newSound.playAsync();
     } catch (error) {
-      console.log('Error playing sound:', error);
+      if (__DEV__) {
+        console.log('Error playing sound:', error);
+      }
     }
   };
 
@@ -148,7 +150,9 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const toggleNightMode = (value) => {
-    console.log('Night mode toggled:', value);
+    if (__DEV__) {
+      console.log('Night mode toggled:', value);
+    }
     setIsNightMode(value);
   };
 
@@ -178,7 +182,9 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.switchText}>Night: {isNightMode ? 'ON' : 'OFF'}</Text>
           <TouchableOpacity 
             onPress={() => {
-              console.log('Switch tapped, current state:', isNightMode);
+              if (__DEV__) {
+                console.log('Switch tapped, current state:', isNightMode);
+              }
               setIsNightMode(!isNightMode);
             }}
             style={styles.switchButton}
@@ -265,7 +271,9 @@ const FontasticScreen = ({ route, navigation }) => {
       setSound(newSound);
       await newSound.playAsync();
     } catch (error) {
-      console.log('Error playing sound:', error);
+      if (__DEV__) {
+        console.log('Error playing sound:', error);
+      }
     }
   };
 
