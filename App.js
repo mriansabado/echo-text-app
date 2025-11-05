@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform, Image, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform, Image, SafeAreaView, Animated } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +13,7 @@ const Stack = createStackNavigator();
 const FontasticApp = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator screenOptions={{ animationEnabled: false }}>
         <Stack.Screen name="Fontastic" component={HomeScreen} />
         <Stack.Screen 
           name="FontasticResults" 
@@ -33,6 +33,8 @@ const HomeScreen = ({ navigation }) => {
   const [isNightMode, setIsNightMode] = useState(false);
   const [dimensions, setDimensions] = useState(Dimensions.get('window'));
   const [sound, setSound] = useState();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const fadeOpacity = React.useRef(new Animated.Value(0)).current;
   
 
   useEffect(() => {
@@ -93,7 +95,7 @@ const HomeScreen = ({ navigation }) => {
   const handleEnterPress = () => {
     // playSound(require('./assets/sounds/submit.mp3')); // Uncomment when you add submit.mp3
     const resultsBackgroundColor = isNightMode ? '#1e3a8a' : backgroundColor;
-    navigation.navigate('FontasticResults', { text, selectedAnimation, backgroundColor: resultsBackgroundColor });
+    transitionToResults(resultsBackgroundColor);
   };
 
   const handleClearAll = () => {
@@ -107,6 +109,42 @@ const HomeScreen = ({ navigation }) => {
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
+  };
+
+  const waitForOrientation = async (desired) => {
+    const current = await ScreenOrientation.getOrientationAsync();
+    const isLandscapeDesired = desired === 'LANDSCAPE';
+    const isPortraitDesired = desired === 'PORTRAIT';
+    if (
+      (isLandscapeDesired && (current === ScreenOrientation.Orientation.LANDSCAPE_LEFT || current === ScreenOrientation.Orientation.LANDSCAPE_RIGHT)) ||
+      (isPortraitDesired && (current === ScreenOrientation.Orientation.PORTRAIT_UP || current === ScreenOrientation.Orientation.PORTRAIT_DOWN))
+    ) {
+      return;
+    }
+    return new Promise((resolve) => {
+      const sub = ScreenOrientation.addOrientationChangeListener(({ orientationInfo }) => {
+        const o = orientationInfo.orientation;
+        if (
+          (isLandscapeDesired && (o === ScreenOrientation.Orientation.LANDSCAPE_LEFT || o === ScreenOrientation.Orientation.LANDSCAPE_RIGHT)) ||
+          (isPortraitDesired && (o === ScreenOrientation.Orientation.PORTRAIT_UP || o === ScreenOrientation.Orientation.PORTRAIT_DOWN))
+        ) {
+          ScreenOrientation.removeOrientationChangeListener(sub);
+          resolve();
+        }
+      });
+    });
+  };
+
+  const transitionToResults = async (resultsBackgroundColor) => {
+    try {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    } catch (e) {
+      if (__DEV__) {
+        console.log('Orientation lock failed (continuing):', e);
+      }
+    } finally {
+      navigation.navigate('FontasticResults', { text, selectedAnimation, backgroundColor: resultsBackgroundColor });
+    }
   };
 
   const renderThemeCards = () => {
@@ -179,7 +217,7 @@ const HomeScreen = ({ navigation }) => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.switchContainer}>
-          <Text style={styles.switchText}>Night: {isNightMode ? 'ON' : 'OFF'}</Text>
+          <Text style={styles.switchText}>{isNightMode ? '🌙' : '☀️'}</Text>
           <TouchableOpacity 
             onPress={() => {
               if (__DEV__) {
@@ -254,6 +292,7 @@ const HomeScreen = ({ navigation }) => {
             </ScrollView>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
+        {/* Removed pre-navigation black overlay to avoid initial black-screen stall */}
       </View>
   );
 };
@@ -261,6 +300,9 @@ const HomeScreen = ({ navigation }) => {
 const FontasticScreen = ({ route, navigation }) => {
   const { text, selectedAnimation, backgroundColor } = route.params;
   const [sound, setSound] = useState();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const fadeOpacity = React.useRef(new Animated.Value(1)).current;
+  const [winDims, setWinDims] = useState(Dimensions.get('window'));
   
   // Determine if it's night mode based on background color
   const isNightMode = backgroundColor === '#1e3a8a';
@@ -278,15 +320,30 @@ const FontasticScreen = ({ route, navigation }) => {
   };
 
   useEffect(() => {
-    // Lock the screen to landscape mode when the component mounts
+    // Ensure the screen is in landscape; if already locked, this is a no-op
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
     
     // Play display sound when the large text shows
     // playSound(require('./assets/sounds/display.mp3'));
 
-    // Unlock the screen orientation when the component unmounts
+    // Do not unlock on unmount to avoid a second flip; the caller handles locking back
+    return () => {};
+  }, []);
+
+  useEffect(() => {
+    // Fade in on mount for a smooth reveal
+    Animated.timing(fadeOpacity, { toValue: 0, duration: 220, useNativeDriver: true }).start();
+  }, []);
+
+  // Ensure no header appears on results screen
+  useEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
+  useEffect(() => {
+    const sub = Dimensions.addEventListener('change', ({ window }) => setWinDims(window));
     return () => {
-      ScreenOrientation.unlockAsync();
+      sub.remove();
     };
   }, []);
 
@@ -314,7 +371,14 @@ const FontasticScreen = ({ route, navigation }) => {
         vertical
         contentContainerStyle={[
           styles.scrollContent,
-          selectedAnimation && styles.scrollContentWithAnimation
+          (() => {
+            if (!selectedAnimation) return null;
+            const hasText = !!(text && text.trim() !== '');
+            if (!hasText) return null; // theme-only uses centered overlay
+            const base = Math.floor(Math.min(winDims.width, winDims.height) * 0.4);
+            const width = Math.max(260, Math.min(base, 420));
+            return { paddingRight: width + 40 };
+          })()
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -322,19 +386,76 @@ const FontasticScreen = ({ route, navigation }) => {
       </ScrollView>
       
       {selectedAnimation && (
-        <LottieView
-          source={animationSources[selectedAnimation]}
-          autoPlay
-          loop
-          style={!text || text.trim() === '' ? styles.animationCentered : styles.animation}
-        />
+        (!text || text.trim() === '') ? (
+          <View pointerEvents="none" style={styles.animationCenteredContainer}>
+            {(() => {
+              const baseSize = Math.floor(Math.min(winDims.width, winDims.height) * 0.85);
+              const width = baseSize;
+              const height = Math.floor(baseSize * 0.75); // keep 4:3 like previous 200x150
+              return (
+                <LottieView
+                  source={animationSources[selectedAnimation]}
+                  autoPlay
+                  loop
+                  style={[styles.animationCentered, { width, height }]}
+                />
+              );
+            })()}
+          </View>
+        ) : (
+          (() => {
+            const base = Math.floor(Math.min(winDims.width, winDims.height) * 0.4);
+            const width = Math.max(260, Math.min(base, 420));
+            const height = Math.floor(width * 0.75);
+            return (
+              <LottieView
+                source={animationSources[selectedAnimation]}
+                autoPlay
+                loop
+                style={[styles.animation, { width, height, marginTop: -height / 2 }]}
+              />
+            );
+          })()
+        )
       )}
       
       <View style={styles.backButtonContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.backButton} onPress={async () => {
+          try {
+            setIsTransitioning(true);
+            Animated.timing(fadeOpacity, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+            // Wait for portrait before navigating back
+            const waitForPortrait = () => new Promise((resolve) => {
+              ScreenOrientation.getOrientationAsync().then((o) => {
+                if (o === ScreenOrientation.Orientation.PORTRAIT_UP || o === ScreenOrientation.Orientation.PORTRAIT_DOWN) {
+                  resolve();
+                } else {
+                  const sub = ScreenOrientation.addOrientationChangeListener(({ orientationInfo }) => {
+                    const oo = orientationInfo.orientation;
+                    if (oo === ScreenOrientation.Orientation.PORTRAIT_UP || oo === ScreenOrientation.Orientation.PORTRAIT_DOWN) {
+                      ScreenOrientation.removeOrientationChangeListener(sub);
+                      resolve();
+                    }
+                  });
+                }
+              });
+            });
+            await waitForPortrait();
+          } catch (e) {
+            if (__DEV__) {
+              console.log('Transition back failed:', e);
+            }
+          } finally {
+            navigation.goBack();
+          }
+        }}>
           <Text style={styles.backButtonText}>Back to text</Text>
         </TouchableOpacity>
       </View>
+      {isTransitioning && (
+        <Animated.View pointerEvents="none" style={[styles.fadeOverlay, { opacity: fadeOpacity }]} />
+      )}
     </SafeAreaView>
   );
 };
@@ -607,15 +728,27 @@ const styles = StyleSheet.create({
     marginTop: -75, // Half of height to center it vertically
     zIndex: 1,
   },
-  animationCentered: {
+  animationCenteredContainer: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  animationCentered: {
     width: 200,
     height: 150,
-    marginTop: -75, // Half of height to center it vertically
-    marginLeft: -100, // Half of width to center it horizontally
-    zIndex: 1,
+  },
+  fadeOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#000',
   },
 });
 
