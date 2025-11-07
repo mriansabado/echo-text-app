@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform, Image, SafeAreaView, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform, Image, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { Audio } from 'expo-av';
+import { createAudioPlayer } from 'expo-audio';
 import { StatusBar } from 'expo-status-bar';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const Stack = createStackNavigator();
 
@@ -34,7 +36,12 @@ const HomeScreen = ({ navigation }) => {
   const [dimensions, setDimensions] = useState(Dimensions.get('window'));
   const [sound, setSound] = useState();
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isThemeSectionExpanded, setIsThemeSectionExpanded] = useState(false);
+  const [gradientColors, setGradientColors] = useState(['#E8F4F8', '#F0E6F5']);
+  const [buttonGradientColors, setButtonGradientColors] = useState(['#4A90E2', '#357ABD']);
   const fadeOpacity = React.useRef(new Animated.Value(0)).current;
+  const gradientAnim = React.useRef(new Animated.Value(0)).current;
+  const buttonGradientAnim = React.useRef(new Animated.Value(0)).current;
   
 
   useEffect(() => {
@@ -51,6 +58,114 @@ const HomeScreen = ({ navigation }) => {
     return () => {
       subscription.remove();
       ScreenOrientation.unlockAsync();
+    };
+  }, []);
+
+  // Helper function to interpolate between hex colors
+  const interpolateColor = (color1, color2, factor) => {
+    const hex1 = color1.replace('#', '');
+    const hex2 = color2.replace('#', '');
+    const r1 = parseInt(hex1.slice(0, 2), 16);
+    const g1 = parseInt(hex1.slice(2, 4), 16);
+    const b1 = parseInt(hex1.slice(4, 6), 16);
+    const r2 = parseInt(hex2.slice(0, 2), 16);
+    const g2 = parseInt(hex2.slice(2, 4), 16);
+    const b2 = parseInt(hex2.slice(4, 6), 16);
+    
+    const r = Math.round(r1 + (r2 - r1) * factor);
+    const g = Math.round(g1 + (g2 - g1) * factor);
+    const b = Math.round(b1 + (b2 - b1) * factor);
+    
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  };
+
+  // Animate gradient background for theme button
+  useEffect(() => {
+    const colorSets = [
+      ['#E8F4F8', '#F0E6F5'], // Light blue to light purple
+      ['#F0E6F5', '#FFE5E5'], // Light purple to light pink
+      ['#FFE5E5', '#FFF5E1'], // Light pink to light peach
+      ['#FFF5E1', '#E8F4F8'], // Light peach back to light blue
+    ];
+
+    const listener = gradientAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      // Interpolate between color sets
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      
+      setGradientColors([color1, color2]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(gradientAnim, {
+            toValue: 1,
+            duration: 4000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(gradientAnim, {
+            toValue: 0,
+            duration: 4000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      gradientAnim.removeListener(listener);
+    };
+  }, []);
+
+  // Animate button gradient background
+  useEffect(() => {
+    const colorSets = [
+      ['#4A90E2', '#357ABD'], // Blue shades
+      ['#5B9BD5', '#4A90E2'], // Lighter blue
+      ['#357ABD', '#2E6DA4'], // Darker blue
+      ['#4A90E2', '#357ABD'], // Back to start
+    ];
+
+    const listener = buttonGradientAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      // Interpolate between color sets
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      
+      setButtonGradientColors([color1, color2]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(buttonGradientAnim, {
+            toValue: 1,
+            duration: 6000, // Slow 6 second transition
+            useNativeDriver: false,
+          }),
+          Animated.timing(buttonGradientAnim, {
+            toValue: 0,
+            duration: 6000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      buttonGradientAnim.removeListener(listener);
     };
   }, []);
 
@@ -73,9 +188,9 @@ const HomeScreen = ({ navigation }) => {
 
   const playSound = async (soundFile) => {
     try {
-      const { sound: newSound } = await Audio.Sound.createAsync(soundFile);
-      setSound(newSound);
-      await newSound.playAsync();
+      const player = createAudioPlayer(soundFile);
+      setSound(player);
+      player.play();
     } catch (error) {
       if (__DEV__) {
         console.log('Error playing sound:', error);
@@ -163,7 +278,9 @@ const HomeScreen = ({ navigation }) => {
         key={theme.key}
         style={[
           styles.themeCard,
+          isNightMode && styles.themeCardNight,
           selectedAnimation === theme.key && styles.selectedThemeCard,
+          selectedAnimation === theme.key && isNightMode && styles.selectedThemeCardNight,
           { borderColor: theme.color }
         ]}
         onPress={() => selectAnimation(theme.key)}
@@ -172,14 +289,19 @@ const HomeScreen = ({ navigation }) => {
         <View style={[styles.themeEmoji, { backgroundColor: theme.color + '20' }]}>
           <Text style={styles.emojiText}>{theme.emoji}</Text>
           {selectedAnimation === theme.key && (
-            <View style={styles.checkmarkContainer}>
-              <Ionicons name="checkmark" size={16} color="#007AFF" />
+            <View style={[
+              styles.checkmarkContainer,
+              isNightMode && styles.checkmarkContainerNight
+            ]}>
+              <Ionicons name="checkmark" size={16} color={isNightMode ? "#81b0ff" : "#007AFF"} />
             </View>
           )}
         </View>
         <Text style={[
           styles.themeLabel,
-          selectedAnimation === theme.key && styles.selectedThemeLabel
+          isNightMode && styles.themeLabelNight,
+          selectedAnimation === theme.key && styles.selectedThemeLabel,
+          selectedAnimation === theme.key && isNightMode && styles.selectedThemeLabelNight
         ]}>
           {theme.label}
         </Text>
@@ -238,24 +360,6 @@ const HomeScreen = ({ navigation }) => {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-            <View style={styles.themeSection}>
-              <View style={styles.themeTitleContainer}>
-                <Ionicons name="chevron-back" size={16} color="#666" />
-                <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#ffffff' : '#333' }]}>Choose Theme</Text>
-                <Ionicons name="chevron-forward" size={16} color="#666" />
-              </View>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.themeScrollContainer}
-                decelerationRate="fast"
-                snapToInterval={90}
-                snapToAlignment="start"
-                bounces={false}
-              >
-                {renderThemeCards()}
-              </ScrollView>
-            </View>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={[
@@ -286,9 +390,48 @@ const HomeScreen = ({ navigation }) => {
                   </TouchableOpacity>
                 )}
               </View>
-              <TouchableOpacity style={styles.submitButton} onPress={handleEnterPress}>
-                <Text style={styles.buttonText}>Submit</Text>
+              <TouchableOpacity onPress={handleEnterPress} activeOpacity={0.8}>
+                <LinearGradient
+                  colors={buttonGradientColors}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.submitButton}
+                >
+                  <Text style={styles.buttonText}>Display</Text>
+                </LinearGradient>
               </TouchableOpacity>
+            <View style={styles.themeSection}>
+              <TouchableOpacity 
+                onPress={() => setIsThemeSectionExpanded(!isThemeSectionExpanded)}
+                activeOpacity={0.8}
+                style={styles.themeButtonWrapper}
+              >
+                <LinearGradient
+                  colors={isNightMode ? ['#2a2a2a', '#1a1a1a'] : gradientColors}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={[
+                    styles.themeTitleContainer,
+                    isNightMode && styles.themeTitleContainerNight
+                  ]}
+                >
+                  <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Theme</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              {isThemeSectionExpanded && (
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.themeScrollContainer}
+                  decelerationRate="fast"
+                  snapToInterval={90}
+                  snapToAlignment="start"
+                  bounces={false}
+                >
+                  {renderThemeCards()}
+                </ScrollView>
+              )}
+            </View>
             </ScrollView>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
@@ -309,9 +452,9 @@ const FontasticScreen = ({ route, navigation }) => {
 
   const playSound = async (soundFile) => {
     try {
-      const { sound: newSound } = await Audio.Sound.createAsync(soundFile);
-      setSound(newSound);
-      await newSound.playAsync();
+      const player = createAudioPlayer(soundFile);
+      setSound(player);
+      player.play();
     } catch (error) {
       if (__DEV__) {
         console.log('Error playing sound:', error);
@@ -356,7 +499,7 @@ const FontasticScreen = ({ route, navigation }) => {
   };
 
   const animationSources = {
-    Hi: require('./assets/animations/Animation - 1711149112180.json'),
+    Hi: require('./assets/animations/hand wave.json'),
     Alert: require('./assets/animations/Animation - 1709705128416.json'),
     Celebrate: require('./assets/animations/Animation - 1708757997694.json'),
     Happy: require('./assets/animations/happy.json'),
@@ -479,13 +622,13 @@ const styles = StyleSheet.create({
   },
   switchContainer: {
     position: 'absolute',
-    top: 0,
+    bottom: 0,
     right: 0,
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'flex-end',
     padding: 20,
-    paddingTop: 50,
+    paddingBottom: 20,
     zIndex: 10,
     maxWidth: '30%',
   },
@@ -581,11 +724,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   submitButton: {
-    backgroundColor: 'blue',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 10,
     marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   buttonText: {
     color: 'white',
@@ -594,19 +746,44 @@ const styles = StyleSheet.create({
   },
   themeSection: {
     width: '100%',
+    maxWidth: 500,
     marginBottom: 15,
+    marginTop: 20,
+  },
+  themeButtonWrapper: {
+    alignSelf: 'center',
+    marginBottom: 10,
   },
   themeTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    maxWidth: 90,
+    transform: [{ scale: 1 }],
+  },
+  themeTitleContainerNight: {
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    shadowOpacity: 0.4,
+    shadowColor: '#000',
   },
   themeSectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginHorizontal: 8,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    letterSpacing: 0.5,
   },
   themeScrollContainer: {
     paddingHorizontal: 15,
@@ -631,6 +808,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
   },
+  themeCardNight: {
+    backgroundColor: 'rgba(40, 40, 40, 0.9)',
+    shadowOpacity: 0.3,
+  },
   selectedThemeCard: {
     backgroundColor: 'rgba(255, 255, 255, 1)',
     shadowOpacity: 0.4,
@@ -638,6 +819,10 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.08 }],
     borderWidth: 3,
     borderColor: '#007AFF',
+  },
+  selectedThemeCardNight: {
+    backgroundColor: 'rgba(60, 60, 60, 1)',
+    borderColor: '#81b0ff',
   },
   themeEmoji: {
     width: 50,
@@ -669,16 +854,25 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 3,
   },
+  checkmarkContainerNight: {
+    backgroundColor: '#2a2a2a',
+  },
   themeLabel: {
     fontSize: 12,
     fontWeight: '500',
     color: '#666',
     textAlign: 'center',
   },
+  themeLabelNight: {
+    color: '#ccc',
+  },
   selectedThemeLabel: {
     color: '#000',
     fontWeight: '700',
     fontSize: 13,
+  },
+  selectedThemeLabelNight: {
+    color: '#fff',
   },
   bigText: {
     fontSize: 100,
