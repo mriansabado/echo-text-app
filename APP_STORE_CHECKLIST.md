@@ -6,6 +6,7 @@
 - [x] iOS privacy configurations added
 - [x] Encryption declaration added (ITSAppUsesNonExemptEncryption: false)
 - [x] App description added to app.json
+- [x] Custom loading/splash screen with logo animation added
 
 ## 📱 App Store Connect Requirements
 
@@ -45,6 +46,12 @@
 #### App Icon
 - [ ] 1024 x 1024 PNG (no transparency)
 - ✅ File exists: `assets/icon.png`
+- ⚠️ **Verify:** Make sure `assets/icon.png` is exactly 1024x1024 pixels
+
+#### Splash Screen & Loading
+- [x] Custom loading screen component added (shows logo with fade/scale animation)
+- ✅ Splash screen configured in `app.json` (`assets/splash.png`)
+- ⚠️ **Verify:** Make sure `assets/splash.png` looks good and matches your brand
 
 #### Screenshots (REQUIRED - At least one set)
 - [ ] **iPhone 6.7" Display** (iPhone 14 Pro Max, 15 Pro Max)

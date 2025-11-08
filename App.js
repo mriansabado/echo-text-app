@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform, Image, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
@@ -9,14 +9,93 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { createAudioPlayer } from 'expo-audio';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 const Stack = createStackNavigator();
 
+// Header Title Component that always renders the logo
+const HeaderTitle = ({ isNightMode }) => (
+  <Image
+    source={isNightMode ? require('./assets/fontastic-text-dark.png') : require('./assets/fontastic-text.png')}
+    style={{ width: 120, height: 30 }}
+    resizeMode="contain"
+  />
+);
+
+const SplashScreenComponent = ({ onFinish }) => {
+  const [fadeAnim] = useState(new Animated.Value(1)); // Start visible
+  const [dimensions] = useState(Dimensions.get('window'));
+
+  useEffect(() => {
+    // Keep native splash visible
+    SplashScreen.preventAutoHideAsync();
+    
+    // Hide splash screen after duration (4 seconds)
+    const hideTimer = setTimeout(async () => {
+      // Fade out before hiding
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(async () => {
+        await SplashScreen.hideAsync();
+        // Small delay before transitioning to main app
+        setTimeout(() => {
+          onFinish();
+        }, 100);
+      });
+    }, 4000);
+
+    return () => {
+      clearTimeout(hideTimer);
+    };
+  }, []);
+
+  return (
+    <View style={styles.splashContainer}>
+      <StatusBar style="light" />
+      <Animated.View
+        style={[
+          styles.splashContent,
+          {
+            opacity: fadeAnim,
+          },
+        ]}
+      >
+        <Image
+          source={require('./assets/splash2.png')}
+          style={[styles.splashLogo, { width: dimensions.width, height: dimensions.height }]}
+          resizeMode="cover"
+        />
+      </Animated.View>
+    </View>
+  );
+};
+
 const FontasticApp = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  if (isLoading) {
+    return <SplashScreenComponent onFinish={() => setIsLoading(false)} />;
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ animationEnabled: false }}>
-        <Stack.Screen name="Fontastic" component={HomeScreen} />
+        <Stack.Screen 
+          name="Fontastic" 
+          component={HomeScreen}
+          options={{
+            headerTitle: () => <HeaderTitle isNightMode={false} />,
+            headerTitleAlign: 'center',
+            headerStyle: { backgroundColor: '#eaf2ff' },
+            headerTitleStyle: { color: '#000000' },
+            headerTintColor: '#000000',
+          }}
+        />
         <Stack.Screen 
           name="FontasticResults" 
           component={FontasticScreen} 
@@ -170,21 +249,34 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   // Update navigation header colors based on in-app Night mode
-  useEffect(() => {
+  // Use useLayoutEffect to set header synchronously before paint
+  React.useLayoutEffect(() => {
     navigation.setOptions({
       headerStyle: { backgroundColor: isNightMode ? '#000000' : '#eaf2ff' },
       headerTitleStyle: { color: isNightMode ? '#ffffff' : '#000000' },
       headerTintColor: isNightMode ? '#ffffff' : '#000000',
-      headerTitle: () => (
-        <Image
-          source={isNightMode ? require('./assets/fontastic-text-dark.png') : require('./assets/fontastic-text.png')}
-          style={{ width: 120, height: 30 }}
-          resizeMode="contain"
-        />
-      ),
+      headerTitle: () => <HeaderTitle isNightMode={isNightMode} />,
       headerTitleAlign: 'center',
     });
   }, [navigation, isNightMode]);
+
+  // Use useFocusEffect to ensure header is set every time screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Small delay to ensure navigation has completed
+      const timer = setTimeout(() => {
+        navigation.setOptions({
+          headerStyle: { backgroundColor: isNightMode ? '#000000' : '#eaf2ff' },
+          headerTitleStyle: { color: isNightMode ? '#ffffff' : '#000000' },
+          headerTintColor: isNightMode ? '#ffffff' : '#000000',
+          headerTitle: () => <HeaderTitle isNightMode={isNightMode} />,
+          headerTitleAlign: 'center',
+        });
+      }, 0);
+      
+      return () => clearTimeout(timer);
+    }, [navigation, isNightMode])
+  );
 
   const playSound = async (soundFile) => {
     try {
@@ -338,22 +430,6 @@ const HomeScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <View style={styles.switchContainer}>
-          <Text style={styles.switchText}>{isNightMode ? '🌙' : '☀️'}</Text>
-          <TouchableOpacity 
-            onPress={() => {
-              if (__DEV__) {
-                console.log('Switch tapped, current state:', isNightMode);
-              }
-              setIsNightMode(!isNightMode);
-            }}
-            style={styles.switchButton}
-          >
-            <View style={[styles.switchTrack, isNightMode && styles.switchTrackActive]}>
-              <View style={[styles.switchThumb, isNightMode && styles.switchThumbActive]} />
-            </View>
-          </TouchableOpacity>
-        </View>
           <TouchableWithoutFeedback onPress={dismissKeyboard}>
             <ScrollView 
               contentContainerStyle={styles.mainContent}
@@ -361,6 +437,22 @@ const HomeScreen = ({ navigation }) => {
               keyboardShouldPersistTaps="handled"
             >
               <View style={styles.inputContainer}>
+                <View style={styles.switchContainer}>
+                  <Text style={styles.switchText}>{isNightMode ? '🌙' : '☀️'}</Text>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      if (__DEV__) {
+                        console.log('Switch tapped, current state:', isNightMode);
+                      }
+                      setIsNightMode(!isNightMode);
+                    }}
+                    style={styles.switchButton}
+                  >
+                    <View style={[styles.switchTrack, isNightMode && styles.switchTrackActive]}>
+                      <View style={[styles.switchThumb, isNightMode && styles.switchThumbActive]} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
                 <TextInput
                   style={[
                     styles.input, 
@@ -604,6 +696,19 @@ const FontasticScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  splashContainer: {
+    flex: 1,
+    backgroundColor: '#eaf2ff',
+  },
+  splashContent: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  splashLogo: {
+    width: '100%',
+    height: '100%',
+  },
   container: {
     flex: 1,
     backgroundColor: 'transparent',
@@ -622,22 +727,18 @@ const styles = StyleSheet.create({
   },
   switchContainer: {
     position: 'absolute',
-    bottom: 0,
+    top: -40,
     right: 0,
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    padding: 20,
-    paddingBottom: 20,
     zIndex: 10,
-    maxWidth: '30%',
   },
   switchText: {
-    marginBottom: 5,
-    fontSize: 12,
+    fontSize: 16,
     color: '#ffffff',
     fontWeight: '600',
-    textAlign: 'center',
+    marginRight: 5,
   },
   switchButton: {
     padding: 5,
@@ -682,6 +783,7 @@ const styles = StyleSheet.create({
     maxWidth: 500,
     marginBottom: 15,
     marginTop: 10,
+    position: 'relative',
   },
   input: {
     flex: 1,
