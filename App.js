@@ -12,36 +12,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const Stack = createStackNavigator();
 
-// Global ref to track night mode state for header
-const nightModeRef = { current: false };
-
-// Header Title Component that always renders the logo
-const HeaderTitle = () => {
-  const [isNightMode, setIsNightMode] = React.useState(() => nightModeRef.current);
-  
-  // Update when ref changes - check less frequently to avoid unnecessary re-renders
-  React.useEffect(() => {
-    const checkNightMode = () => {
-      const currentNightMode = nightModeRef.current;
-      if (currentNightMode !== isNightMode) {
-        setIsNightMode(currentNightMode);
-      }
-    };
-    
-    // Check periodically for night mode changes (reduced frequency)
-    const interval = setInterval(checkNightMode, 200);
-    
-    return () => clearInterval(interval);
-  }, [isNightMode]);
-  
-  return (
-    <Image
-      source={isNightMode ? require('./assets/fontastic-text-dark.png') : require('./assets/fontastic-text.png')}
-      style={{ width: 120, height: 30 }}
-      resizeMode="contain"
-    />
-  );
-};
 
 const FontasticApp = () => {
   return (
@@ -51,11 +21,7 @@ const FontasticApp = () => {
           name="Fontastic" 
           component={HomeScreen}
           options={{
-            headerTitle: () => <HeaderTitle />,
-            headerTitleAlign: 'center',
-            headerStyle: { backgroundColor: '#eaf2ff' },
-            headerTitleStyle: { color: '#000000' },
-            headerTintColor: '#000000',
+            headerShown: false,
           }}
         />
         <Stack.Screen 
@@ -210,72 +176,6 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-  // Update the global ref whenever night mode changes
-  React.useEffect(() => {
-    nightModeRef.current = isNightMode;
-  }, [isNightMode]);
-
-  // Function to update header - called from multiple places
-  const updateHeader = React.useCallback(() => {
-    // Always create a fresh HeaderTitle component to ensure it renders
-    navigation.setOptions({
-      headerStyle: { backgroundColor: isNightMode ? '#000000' : '#eaf2ff' },
-      headerTitleStyle: { color: isNightMode ? '#ffffff' : '#000000' },
-      headerTintColor: isNightMode ? '#ffffff' : '#000000',
-      headerTitle: () => <HeaderTitle />,
-      headerTitleAlign: 'center',
-    });
-  }, [navigation, isNightMode]);
-
-  // Update navigation header on mount and when night mode changes
-  React.useLayoutEffect(() => {
-    updateHeader();
-  }, [updateHeader]);
-
-  // Add navigation listeners to update header when screen comes into focus
-  useEffect(() => {
-    const unsubscribeFocus = navigation.addListener('focus', () => {
-      if (__DEV__) {
-        console.log('HomeScreen focused - updating header');
-      }
-      // Update header when screen comes into focus - use multiple attempts to ensure it sticks
-      updateHeader();
-      requestAnimationFrame(() => {
-        updateHeader();
-        // Try again after a short delay to ensure it's visible
-        setTimeout(() => {
-          updateHeader();
-        }, 100);
-      });
-    });
-
-    return () => {
-      unsubscribeFocus();
-    };
-  }, [navigation, updateHeader]);
-
-  // Handle app state changes (when app comes back from background)
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (nextAppState === 'active') {
-        // App has come to the foreground, ensure header is set
-        setTimeout(() => {
-          updateHeader();
-        }, 100);
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [updateHeader]);
-
-  // Also use useFocusEffect as backup
-  useFocusEffect(
-    React.useCallback(() => {
-      updateHeader();
-    }, [updateHeader])
-  );
 
   const playSound = async (soundFile) => {
     try {
@@ -408,8 +308,8 @@ const HomeScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style={isNightMode ? 'light' : 'dark'} backgroundColor={isNightMode ? '#000000' : '#eaf2ff'} />
+    <SafeAreaView style={[styles.container, { backgroundColor: isNightMode ? '#000000' : 'transparent' }]} edges={['top']}>
+      <StatusBar style={isNightMode ? 'light' : 'dark'} />
       <LottieView
         source={isNightMode ? require('./assets/animations/Animation-Nighttime.json') : require('./assets/animations/Animation-Daytime.json')}
         autoPlay
@@ -527,7 +427,7 @@ const HomeScreen = ({ navigation }) => {
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
         {/* Removed pre-navigation black overlay to avoid initial black-screen stall */}
-      </View>
+      </SafeAreaView>
   );
 };
 
