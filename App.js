@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform, Image, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView, Switch, Dimensions, KeyboardAvoidingView, Platform, Image, Animated, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -89,7 +89,6 @@ const FontasticApp = () => {
           name="Fontastic" 
           component={HomeScreen}
           options={{
-            headerTitle: () => <HeaderTitle isNightMode={false} />,
             headerTitleAlign: 'center',
             headerStyle: { backgroundColor: '#eaf2ff' },
             headerTitleStyle: { color: '#000000' },
@@ -248,34 +247,76 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-  // Update navigation header colors based on in-app Night mode
-  // Use useLayoutEffect to set header synchronously before paint
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerStyle: { backgroundColor: isNightMode ? '#000000' : '#eaf2ff' },
-      headerTitleStyle: { color: isNightMode ? '#ffffff' : '#000000' },
-      headerTintColor: isNightMode ? '#ffffff' : '#000000',
-      headerTitle: () => <HeaderTitle isNightMode={isNightMode} />,
-      headerTitleAlign: 'center',
+  // Function to update header - called from multiple places
+  const updateHeader = React.useCallback(() => {
+    // Force update with a small delay to ensure navigation is ready
+    const update = () => {
+      navigation.setOptions({
+        headerStyle: { backgroundColor: isNightMode ? '#000000' : '#eaf2ff' },
+        headerTitleStyle: { color: isNightMode ? '#ffffff' : '#000000' },
+        headerTintColor: isNightMode ? '#ffffff' : '#000000',
+        headerTitle: () => <HeaderTitle key={`header-${isNightMode}-${Date.now()}`} isNightMode={isNightMode} />,
+        headerTitleAlign: 'center',
+      });
+    };
+    
+    // Try immediately
+    update();
+    
+    // Also try after a frame to ensure it sticks
+    requestAnimationFrame(() => {
+      update();
     });
   }, [navigation, isNightMode]);
 
-  // Use useFocusEffect to ensure header is set every time screen comes into focus
+  // Update navigation header on mount and when night mode changes
+  React.useLayoutEffect(() => {
+    updateHeader();
+  }, [updateHeader]);
+
+  // Add navigation listener to update header when screen comes into focus
+  useEffect(() => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      // Use multiple attempts to ensure it sticks
+      requestAnimationFrame(() => {
+        updateHeader();
+        // Try again after a short delay
+        setTimeout(() => {
+          updateHeader();
+        }, 100);
+      });
+    });
+
+    return unsubscribeFocus;
+  }, [navigation, updateHeader]);
+
+  // Handle app state changes (when app comes back from background)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        // App has come to the foreground, ensure header is set
+        setTimeout(() => {
+          updateHeader();
+        }, 100);
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [updateHeader]);
+
+  // Also use useFocusEffect as backup
   useFocusEffect(
     React.useCallback(() => {
-      // Small delay to ensure navigation has completed
+      updateHeader();
+      // Also try again after a short delay
       const timer = setTimeout(() => {
-        navigation.setOptions({
-          headerStyle: { backgroundColor: isNightMode ? '#000000' : '#eaf2ff' },
-          headerTitleStyle: { color: isNightMode ? '#ffffff' : '#000000' },
-          headerTintColor: isNightMode ? '#ffffff' : '#000000',
-          headerTitle: () => <HeaderTitle isNightMode={isNightMode} />,
-          headerTitleAlign: 'center',
-        });
-      }, 0);
+        updateHeader();
+      }, 50);
       
       return () => clearTimeout(timer);
-    }, [navigation, isNightMode])
+    }, [updateHeader])
   );
 
   const playSound = async (soundFile) => {
