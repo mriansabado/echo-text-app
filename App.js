@@ -9,118 +9,41 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { createAudioPlayer } from 'expo-audio';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as SplashScreen from 'expo-splash-screen';
-
-// Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
 
 const Stack = createStackNavigator();
 
 // Global ref to track night mode state for header
 const nightModeRef = { current: false };
 
-// Force update counter for HeaderTitle
-let headerUpdateCounter = 0;
-
 // Header Title Component that always renders the logo
-const HeaderTitle = React.memo(() => {
-  const [isNightMode, setIsNightMode] = React.useState(nightModeRef.current);
-  const [updateKey, setUpdateKey] = React.useState(0);
+const HeaderTitle = () => {
+  const [isNightMode, setIsNightMode] = React.useState(() => nightModeRef.current);
   
-  // Update when ref changes
+  // Update when ref changes - check less frequently to avoid unnecessary re-renders
   React.useEffect(() => {
     const checkNightMode = () => {
       const currentNightMode = nightModeRef.current;
       if (currentNightMode !== isNightMode) {
         setIsNightMode(currentNightMode);
-        setUpdateKey(prev => prev + 1);
       }
     };
     
-    // Check frequently to catch changes
-    const interval = setInterval(checkNightMode, 50);
+    // Check periodically for night mode changes (reduced frequency)
+    const interval = setInterval(checkNightMode, 200);
     
     return () => clearInterval(interval);
   }, [isNightMode]);
   
-  // Force re-render periodically to ensure it's always visible
-  React.useEffect(() => {
-    const forceUpdateInterval = setInterval(() => {
-      setUpdateKey(prev => prev + 1);
-    }, 500);
-    
-    return () => clearInterval(forceUpdateInterval);
-  }, []);
-  
   return (
     <Image
-      key={`header-img-${updateKey}-${isNightMode}`}
       source={isNightMode ? require('./assets/fontastic-text-dark.png') : require('./assets/fontastic-text.png')}
       style={{ width: 120, height: 30 }}
       resizeMode="contain"
     />
   );
-});
-
-const SplashScreenComponent = ({ onFinish }) => {
-  const [dimensions] = useState(Dimensions.get('window'));
-
-  useEffect(() => {
-    if (__DEV__) {
-      console.log('SplashScreenComponent mounted');
-    }
-    
-    // Keep native splash visible
-    SplashScreen.preventAutoHideAsync();
-    
-    // Hide splash screen after duration (4 seconds)
-    const hideTimer = setTimeout(async () => {
-      if (__DEV__) {
-        console.log('Hiding splash screen after 4 seconds');
-      }
-      await SplashScreen.hideAsync();
-      // Small delay before transitioning to main app
-      setTimeout(() => {
-        onFinish();
-      }, 100);
-    }, 4000);
-
-    return () => {
-      clearTimeout(hideTimer);
-    };
-  }, []);
-
-  return (
-    <View style={styles.splashContainer}>
-      <StatusBar style="light" />
-      <View style={styles.splashContent}>
-        <Image
-          source={require('./assets/splash2.png')}
-          style={[styles.splashLogo, { width: dimensions.width, height: dimensions.height }]}
-          resizeMode="cover"
-          onError={(error) => {
-            if (__DEV__) {
-              console.log('Splash image error:', error);
-            }
-          }}
-          onLoad={() => {
-            if (__DEV__) {
-              console.log('Splash image loaded successfully');
-            }
-          }}
-        />
-      </View>
-    </View>
-  );
 };
 
 const FontasticApp = () => {
-  const [isLoading, setIsLoading] = useState(true);
-
-  if (isLoading) {
-    return <SplashScreenComponent onFinish={() => setIsLoading(false)} />;
-  }
-
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ animationEnabled: false }}>
@@ -294,29 +217,14 @@ const HomeScreen = ({ navigation }) => {
 
   // Function to update header - called from multiple places
   const updateHeader = React.useCallback(() => {
-    // Force update with a small delay to ensure navigation is ready
-    const update = () => {
-      navigation.setOptions({
-        headerStyle: { backgroundColor: isNightMode ? '#000000' : '#eaf2ff' },
-        headerTitleStyle: { color: isNightMode ? '#ffffff' : '#000000' },
-        headerTintColor: isNightMode ? '#ffffff' : '#000000',
-        headerTitle: () => <HeaderTitle />,
-        headerTitleAlign: 'center',
-      });
-    };
-    
-    // Try immediately
-    update();
-    
-    // Also try after a frame to ensure it sticks
-    requestAnimationFrame(() => {
-      update();
+    // Always create a fresh HeaderTitle component to ensure it renders
+    navigation.setOptions({
+      headerStyle: { backgroundColor: isNightMode ? '#000000' : '#eaf2ff' },
+      headerTitleStyle: { color: isNightMode ? '#ffffff' : '#000000' },
+      headerTintColor: isNightMode ? '#ffffff' : '#000000',
+      headerTitle: () => <HeaderTitle />,
+      headerTitleAlign: 'center',
     });
-    
-    // And try one more time after a short delay
-    setTimeout(() => {
-      update();
-    }, 50);
   }, [navigation, isNightMode]);
 
   // Update navigation header on mount and when night mode changes
@@ -330,33 +238,19 @@ const HomeScreen = ({ navigation }) => {
       if (__DEV__) {
         console.log('HomeScreen focused - updating header');
       }
-      // Use multiple attempts to ensure it sticks
+      // Update header when screen comes into focus - use multiple attempts to ensure it sticks
+      updateHeader();
       requestAnimationFrame(() => {
         updateHeader();
-        // Try again after short delays
+        // Try again after a short delay to ensure it's visible
         setTimeout(() => {
           updateHeader();
-        }, 50);
-        setTimeout(() => {
-          updateHeader();
-        }, 150);
-        setTimeout(() => {
-          updateHeader();
-        }, 300);
+        }, 100);
       });
-    });
-    
-    // Also listen for when we're about to come into focus (willFocus)
-    const unsubscribeWillFocus = navigation.addListener('willFocus', () => {
-      if (__DEV__) {
-        console.log('HomeScreen willFocus - pre-updating header');
-      }
-      updateHeader();
     });
 
     return () => {
       unsubscribeFocus();
-      unsubscribeWillFocus();
     };
   }, [navigation, updateHeader]);
 
@@ -380,12 +274,6 @@ const HomeScreen = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       updateHeader();
-      // Also try again after a short delay
-      const timer = setTimeout(() => {
-        updateHeader();
-      }, 50);
-      
-      return () => clearTimeout(timer);
     }, [updateHeader])
   );
 
@@ -807,26 +695,6 @@ const FontasticScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  splashContainer: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  splashContent: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  splashLogo: {
-    width: '100%',
-    height: '100%',
-  },
   container: {
     flex: 1,
     backgroundColor: 'transparent',
