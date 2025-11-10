@@ -9,11 +9,40 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { createAudioPlayer } from 'expo-audio';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as SplashScreen from 'expo-splash-screen';
 
 const Stack = createStackNavigator();
 
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 const FontasticApp = () => {
+  const [appIsReady, setAppIsReady] = useState(false);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Pre-load fonts, make any API calls you need to do here
+        // For now, just a small delay to ensure smooth transition
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (e) {
+        if (__DEV__) {
+          console.warn('Error preparing app:', e);
+        }
+      } finally {
+        // Tell the application to render
+        setAppIsReady(true);
+        await SplashScreen.hideAsync();
+      }
+    }
+
+    prepare();
+  }, []);
+
+  if (!appIsReady) {
+    return null;
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ animationEnabled: false }}>
