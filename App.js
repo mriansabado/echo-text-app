@@ -467,8 +467,11 @@ const FontasticScreen = ({ route, navigation }) => {
   const fadeOpacity = React.useRef(new Animated.Value(1)).current;
   const [winDims, setWinDims] = useState(Dimensions.get('window'));
   
-  // Determine if it's night mode based on background color
-  const isNightMode = backgroundColor === '#1e3a8a';
+  // Determine initial night mode based on background color, then allow toggling
+  const [isNightMode, setIsNightMode] = useState(backgroundColor === '#1e3a8a');
+  // Store the original light mode color (default to '#f7e5e7' if we started in night mode)
+  const originalLightColor = backgroundColor === '#1e3a8a' ? '#f7e5e7' : backgroundColor;
+  const [currentBackgroundColor, setCurrentBackgroundColor] = useState(backgroundColor);
 
   const playSound = async (soundFile) => {
     try {
@@ -518,6 +521,11 @@ const FontasticScreen = ({ route, navigation }) => {
     }
   };
 
+  const toggleNightMode = (value) => {
+    setIsNightMode(value);
+    setCurrentBackgroundColor(value ? '#1e3a8a' : originalLightColor);
+  };
+
   const animationSources = {
     Hi: require('./assets/animations/hand wave.json'),
     Alert: require('./assets/animations/Animation - 1709705128416.json'),
@@ -529,7 +537,7 @@ const FontasticScreen = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['left', 'right', 'top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentBackgroundColor }]} edges={['left', 'right', 'top']}>
       <ScrollView 
         vertical
         contentContainerStyle={[
@@ -614,6 +622,23 @@ const FontasticScreen = ({ route, navigation }) => {
           }
         }}>
           <Text style={styles.backButtonText}>Back to text</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.resultsSwitchContainer}>
+        <Text style={[styles.resultsSwitchText, { color: isNightMode ? '#ffffff' : '#000000' }]}>{isNightMode ? '🌙' : '☀️'}</Text>
+        <TouchableOpacity 
+          onPress={() => {
+            if (__DEV__) {
+              console.log('Results switch tapped, current state:', isNightMode);
+            }
+            toggleNightMode(!isNightMode);
+          }}
+          style={styles.switchButton}
+        >
+          <View style={[styles.switchTrack, isNightMode && styles.switchTrackActive]}>
+            <View style={[styles.switchThumb, isNightMode && styles.switchThumbActive]} />
+          </View>
         </TouchableOpacity>
       </View>
       {isTransitioning && (
@@ -916,6 +941,20 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
+  },
+  resultsSwitchContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    zIndex: 10,
+  },
+  resultsSwitchText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 5,
   },
   backButton: {
     backgroundColor: 'transparent',
