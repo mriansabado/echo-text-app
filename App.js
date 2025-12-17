@@ -16,7 +16,7 @@ const Stack = createStackNavigator();
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
-const FontasticApp = () => {
+const PocketSayApp = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
   useEffect(() => {
@@ -47,15 +47,15 @@ const FontasticApp = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ animationEnabled: false }}>
         <Stack.Screen 
-          name="Fontastic" 
+          name="PocketSay" 
           component={HomeScreen}
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen 
-          name="FontasticResults" 
-          component={FontasticScreen} 
+          name="PocketSayResults" 
+          component={PocketSayScreen} 
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
@@ -278,7 +278,7 @@ const HomeScreen = ({ navigation }) => {
         console.log('Orientation lock failed (continuing):', e);
       }
     } finally {
-      navigation.navigate('FontasticResults', { text, selectedAnimation, backgroundColor: resultsBackgroundColor });
+      navigation.navigate('PocketSayResults', { text, selectedAnimation, backgroundColor: resultsBackgroundColor });
     }
   };
 
@@ -460,7 +460,7 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
-const FontasticScreen = ({ route, navigation }) => {
+const PocketSayScreen = ({ route, navigation }) => {
   const { text, selectedAnimation, backgroundColor } = route.params;
   const [sound, setSound] = useState();
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -487,7 +487,14 @@ const FontasticScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     // Ensure the screen is in landscape; if already locked, this is a no-op
-    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    const lockAndUpdateDims = async () => {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      // Update dimensions after orientation change
+      setTimeout(() => {
+        setWinDims(Dimensions.get('window'));
+      }, 100);
+    };
+    lockAndUpdateDims();
     
     // Play display sound when the large text shows
     // playSound(require('./assets/sounds/display.mp3'));
@@ -537,9 +544,8 @@ const FontasticScreen = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentBackgroundColor }]} edges={['left', 'right', 'top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentBackgroundColor }]} edges={['left', 'right', 'top', 'bottom']}>
       <ScrollView 
-        vertical
         contentContainerStyle={[
           styles.scrollContent,
           (() => {
@@ -552,6 +558,7 @@ const FontasticScreen = ({ route, navigation }) => {
           })()
         ]}
         showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
       >
         <Text numberOfLines={5} style={[styles.bigText, { color: isNightMode ? '#ffffff' : '#000000' }]} ellipsizeMode='clip'>{text}</Text>
       </ScrollView>
@@ -931,6 +938,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingLeft: 40, // Extra padding on left to avoid notch/Dynamic Island
     paddingRight: 20,
+    minHeight: '100%',
   },
   scrollContentWithAnimation: {
     paddingRight: 220, // Give space for the animation when one is selected
@@ -1002,5 +1010,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FontasticApp;
+export default PocketSayApp;
 

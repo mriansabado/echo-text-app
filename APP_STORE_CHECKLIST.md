@@ -7,22 +7,23 @@
 - [x] Encryption declaration added (ITSAppUsesNonExemptEncryption: false)
 - [x] App description added to app.json
 - [x] Custom loading/splash screen with logo animation added
+- [x] **Dependencies updated and fixed** (expo-asset added, all packages updated to SDK 54 compatible versions)
 
 ## 📱 App Store Connect Requirements
 
 ### Basic Information
-- **App Name:** Fontastic
-- **Bundle ID:** com.iandev808.fontastic
+- **App Name:** PocketSay
+- **Bundle ID:** com.iandev808.fontastic (consider updating to com.iandev808.pocketsay)
 - **Version:** 1.0.0
 
 ### App Information (Required)
 - [ ] **Subtitle** (30 characters max)
-  - Suggestion: "Animated text displays with themes"
+  - Suggestion: "Large text from your pocket"
   
 - [ ] **Description** (4,000 characters max)
   - Suggestion: 
   ```
-  Fontastic lets you create beautiful, animated text displays with a variety of themes and visual effects. Perfect for presentations, announcements, or just having fun with text!
+  PocketSay lets you display large text from your pocket to communicate from a distance. Perfect for getting someone's attention across a room, at events, or anywhere you need to send a clear message!
   
   Features:
   • Choose from multiple animated themes (Wave, Alert, Party, Happy, Sad, Thinking, Love)
@@ -31,15 +32,15 @@
   • Smooth animations and transitions
   • Portrait and landscape orientations supported
   
-  Simply type your text, select a theme, and watch it come to life with beautiful animations!
+  Simply type your message, select a theme, and hold up your phone to communicate from a distance!
   ```
 
 - [ ] **Keywords** (100 characters max, comma-separated)
-  - Suggestion: "text,display,animation,theme,visual,effects,font,typography,presentation"
+  - Suggestion: "text,display,sign,message,communication,distance,large,font,animation,theme"
 
 - [ ] **Category**
-  - Primary: [ ] Entertainment / [ ] Utilities / [ ] Graphics & Design
-  - Secondary: (Optional) [ ] Productivity / [ ] Photo & Video
+  - Primary: [ ] Utilities (recommended) / [ ] Entertainment
+  - Secondary: (Optional) [ ] Productivity
 
 ### Visual Assets (REQUIRED)
 
@@ -91,13 +92,13 @@
   - Not needed for this app (no authentication)
 
 - [ ] **Notes** (optional)
-  - Add any special instructions for reviewers
-  - Example: "App is a simple text display tool with no login required"
+  - "PocketSay is a simple text display tool. No login required. Perfect for communicating from a distance."
 
 ## 🚀 Build & Submit
 
 ### Before Building
-- [ ] Run `npm install` to ensure dependencies are up to date
+- [x] Run `npm install` to ensure dependencies are up to date ✅
+- [x] All dependencies verified with `expo-doctor` ✅
 - [ ] Verify all assets are in place
 - [ ] Test app thoroughly on device/simulator
 
