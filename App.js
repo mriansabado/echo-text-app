@@ -471,6 +471,7 @@ const HomeScreen = ({ navigation }) => {
     setIsNightMode(value);
   };
 
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={[styles.container, { backgroundColor: isNightMode ? '#000000' : 'transparent' }]} edges={['top']}>
@@ -1945,7 +1946,7 @@ const styles = StyleSheet.create({
   },
   settingsButton: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 40,
     right: 20,
     width: 50,
     height: 50,
