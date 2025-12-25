@@ -83,6 +83,13 @@ const HomeScreen = ({ navigation }) => {
   const fadeOpacity = React.useRef(new Animated.Value(0)).current;
   const gradientAnim = React.useRef(new Animated.Value(0)).current;
   const buttonGradientAnim = React.useRef(new Animated.Value(0)).current;
+  const tropicalAnim = React.useRef(new Animated.Value(0)).current;
+  const [tropicalColors, setTropicalColors] = useState(['#40E0D0', '#FF6B6B', '#7FCDBB']);
+  const galaxyAnim = React.useRef(new Animated.Value(0)).current;
+  const [galaxyColors, setGalaxyColors] = useState(['#1a0033', '#4a148c', '#7b1fa2']);
+  const [starAnimations, setStarAnimations] = useState([]);
+  const oceanAnim = React.useRef(new Animated.Value(0)).current;
+  const [oceanColors, setOceanColors] = useState(['#006994', '#00A8CC', '#4ECDC4']);
   
 
   useEffect(() => {
@@ -211,6 +218,7 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
 
+
   const playSound = async (soundFile) => {
     try {
       const player = createAudioPlayer(soundFile);
@@ -284,42 +292,274 @@ const HomeScreen = ({ navigation }) => {
       night: require('./assets/animations/Animation-Nighttime.json'),
       previewColor: '#E8F4F8',
     },
+    tropical: {
+      name: 'Tropical',
+      type: 'animated-gradient',
+      day: { 
+        colorSets: [
+          ['#40E0D0', '#FF6B6B', '#7FCDBB'], // Turquoise, Coral, Palm Green
+          ['#FF6B6B', '#7FCDBB', '#F4D03F'], // Coral, Palm Green, Sandy Beige
+          ['#7FCDBB', '#F4D03F', '#40E0D0'], // Palm Green, Sandy Beige, Turquoise
+          ['#F4D03F', '#40E0D0', '#FF6B6B'], // Sandy Beige, Turquoise, Coral
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      night: { 
+        colorSets: [
+          ['#0A4D68', '#8B3A3A', '#2D5016'], // Deep Ocean, Dark Coral, Deep Forest
+          ['#8B3A3A', '#2D5016', '#6B4423'], // Dark Coral, Deep Forest, Dark Sand
+          ['#2D5016', '#6B4423', '#0A4D68'], // Deep Forest, Dark Sand, Deep Ocean
+          ['#6B4423', '#0A4D68', '#8B3A3A'], // Dark Sand, Deep Ocean, Dark Coral
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      previewColor: '#40E0D0',
+    },
+    galaxy: {
+      name: 'Galaxy',
+      type: 'animated-gradient',
+      day: { 
+        colorSets: [
+          ['#1a0033', '#4a148c', '#7b1fa2'], // Deep Purple, Violet, Magenta
+          ['#4a148c', '#7b1fa2', '#e91e63'], // Violet, Magenta, Pink
+          ['#7b1fa2', '#e91e63', '#3f51b5'], // Magenta, Pink, Indigo
+          ['#e91e63', '#3f51b5', '#1a0033'], // Pink, Indigo, Deep Purple
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      night: { 
+        colorSets: [
+          ['#0a0014', '#1a0033', '#2d0047'], // Deepest Space, Deep Purple, Dark Violet
+          ['#1a0033', '#2d0047', '#4a148c'], // Deep Purple, Dark Violet, Violet
+          ['#2d0047', '#4a148c', '#1a0033'], // Dark Violet, Violet, Deep Purple
+          ['#4a148c', '#1a0033', '#0a0014'], // Violet, Deep Purple, Deepest Space
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      previewColor: '#4a148c',
+    },
     ocean: {
-      name: 'Ocean Breeze',
-      type: 'gradient',
-      day: { colors: ['#87CEEB', '#E0F6FF', '#B0E0E6'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
-      night: { colors: ['#001F3F', '#003366', '#004080'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
-      previewColor: '#87CEEB',
-    },
-    sunset: {
-      name: 'Sunset Glow',
-      type: 'gradient',
-      day: { colors: ['#FF6B6B', '#FFE66D', '#FF8C42'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
-      night: { colors: ['#2C1810', '#4A2C2A', '#6B4423'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
-      previewColor: '#FF6B6B',
-    },
-    forest: {
-      name: 'Forest Calm',
-      type: 'gradient',
-      day: { colors: ['#90EE90', '#C8E6C9', '#A5D6A7'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
-      night: { colors: ['#1B4332', '#2D5016', '#081C15'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
-      previewColor: '#90EE90',
-    },
-    lavender: {
-      name: 'Lavender Dreams',
-      type: 'gradient',
-      day: { colors: ['#E6E6FA', '#DDA0DD', '#DA70D6'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
-      night: { colors: ['#2D1B3D', '#4A2C4A', '#6B3E6B'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
-      previewColor: '#E6E6FA',
-    },
-    minimal: {
-      name: 'Minimal Light',
-      type: 'solid',
-      day: { color: '#F5F5F5' },
-      night: { color: '#1A1A1A' },
-      previewColor: '#F5F5F5',
+      name: 'Ocean',
+      type: 'animated-gradient',
+      day: { 
+        colorSets: [
+          ['#006994', '#00A8CC', '#4ECDC4'], // Deep Blue, Bright Cyan, Turquoise
+          ['#00A8CC', '#4ECDC4', '#87CEEB'], // Bright Cyan, Turquoise, Sky Blue
+          ['#4ECDC4', '#87CEEB', '#B0E0E6'], // Turquoise, Sky Blue, Powder Blue
+          ['#87CEEB', '#B0E0E6', '#006994'], // Sky Blue, Powder Blue, Deep Blue
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      night: { 
+        colorSets: [
+          ['#001F3F', '#003366', '#004080'], // Deep Ocean, Navy, Dark Blue
+          ['#003366', '#004080', '#0059B3'], // Navy, Dark Blue, Midnight Blue
+          ['#004080', '#0059B3', '#0066CC'], // Dark Blue, Midnight Blue, Ocean Blue
+          ['#0059B3', '#0066CC', '#001F3F'], // Midnight Blue, Ocean Blue, Deep Ocean
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      previewColor: '#00A8CC',
     },
   };
+
+  // Animate tropical gradient background
+  useEffect(() => {
+    if (selectedBackground !== 'tropical') return;
+
+    const config = backgroundConfigs.tropical;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = tropicalAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      // Interpolate between color sets (3 colors for tropical)
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      
+      setTropicalColors([color1, color2, color3]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(tropicalAnim, {
+            toValue: 1,
+            duration: 8000, // Smooth 8 second transition
+            useNativeDriver: false,
+          }),
+          Animated.timing(tropicalAnim, {
+            toValue: 0,
+            duration: 8000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      tropicalAnim.removeListener(listener);
+    };
+  }, [selectedBackground, isNightMode]);
+
+  // Animate galaxy gradient background
+  useEffect(() => {
+    if (selectedBackground !== 'galaxy') return;
+
+    const config = backgroundConfigs.galaxy;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = galaxyAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      // Interpolate between color sets (3 colors for galaxy)
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      
+      setGalaxyColors([color1, color2, color3]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(galaxyAnim, {
+            toValue: 1,
+            duration: 10000, // Slower 10 second transition for cosmic feel
+            useNativeDriver: false,
+          }),
+          Animated.timing(galaxyAnim, {
+            toValue: 0,
+            duration: 10000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      galaxyAnim.removeListener(listener);
+    };
+  }, [selectedBackground, isNightMode]);
+
+  // Generate stars for galaxy background
+  useEffect(() => {
+    if (selectedBackground !== 'galaxy') {
+      setStarAnimations([]);
+      return;
+    }
+
+    // Generate 30-40 stars with random positions
+    const numStars = 35;
+    const stars = [];
+    const animations = [];
+
+    for (let i = 0; i < numStars; i++) {
+      const x = Math.random() * 100; // Percentage of width
+      const y = Math.random() * 100; // Percentage of height
+      const size = Math.random() * 2 + 1; // 1-3px
+      const delay = Math.random() * 2000; // Random delay for twinkling
+      const duration = Math.random() * 2000 + 1500; // 1.5-3.5 seconds
+      
+      const animValue = new Animated.Value(0.3 + Math.random() * 0.4); // Start at random opacity
+      animations.push(animValue);
+
+      stars.push({
+        id: i,
+        x,
+        y,
+        size,
+        animValue,
+        delay,
+        duration,
+      });
+    }
+
+    setStarAnimations(stars);
+
+    // Animate each star independently
+    stars.forEach((star) => {
+      const twinkle = () => {
+        Animated.sequence([
+          Animated.timing(star.animValue, {
+            toValue: 0.2 + Math.random() * 0.6,
+            duration: star.duration,
+            useNativeDriver: true,
+          }),
+          Animated.timing(star.animValue, {
+            toValue: 0.3 + Math.random() * 0.4,
+            duration: star.duration,
+            useNativeDriver: true,
+          }),
+        ]).start(() => twinkle());
+      };
+
+      setTimeout(() => twinkle(), star.delay);
+    });
+
+    return () => {
+      animations.forEach(anim => anim.stopAnimation());
+    };
+  }, [selectedBackground, dimensions]);
+
+  // Animate ocean gradient background
+  useEffect(() => {
+    if (selectedBackground !== 'ocean') return;
+
+    const config = backgroundConfigs.ocean;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = oceanAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      // Interpolate between color sets (3 colors for ocean)
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      
+      setOceanColors([color1, color2, color3]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(oceanAnim, {
+            toValue: 1,
+            duration: 9000, // Smooth 9 second transition for wave-like feel
+            useNativeDriver: false,
+          }),
+          Animated.timing(oceanAnim, {
+            toValue: 0,
+            duration: 9000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      oceanAnim.removeListener(listener);
+    };
+  }, [selectedBackground, isNightMode]);
 
   const transitionToResults = async (resultsBackgroundColor) => {
     try {
@@ -448,7 +688,7 @@ const HomeScreen = ({ navigation }) => {
               styles.checkmarkContainer,
               isNightMode && styles.checkmarkContainerNight
             ]}>
-              <Ionicons name="checkmark" size={16} color={isNightMode ? "#81b0ff" : "#007AFF"} />
+              <Ionicons name="checkmark" size={12} color={isNightMode ? "#81b0ff" : "#007AFF"} />
             </View>
           )}
         </View>
@@ -508,6 +748,47 @@ const HomeScreen = ({ navigation }) => {
             bottom: 0,
           }}
         />
+      )}
+      {backgroundConfigs[selectedBackground].type === 'animated-gradient' && (
+        <>
+          <LinearGradient
+            colors={
+              selectedBackground === 'tropical' ? tropicalColors :
+              selectedBackground === 'galaxy' ? galaxyColors :
+              oceanColors
+            }
+            start={isNightMode ? backgroundConfigs[selectedBackground].night.start : backgroundConfigs[selectedBackground].day.start}
+            end={isNightMode ? backgroundConfigs[selectedBackground].night.end : backgroundConfigs[selectedBackground].day.end}
+            style={{
+              position: 'absolute',
+              width: dimensions.width,
+              height: dimensions.height,
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+          {selectedBackground === 'galaxy' && starAnimations.map((star) => (
+            <Animated.View
+              key={star.id}
+              style={{
+                position: 'absolute',
+                left: `${star.x}%`,
+                top: `${star.y}%`,
+                width: star.size,
+                height: star.size,
+                borderRadius: star.size / 2,
+                backgroundColor: '#ffffff',
+                opacity: star.animValue,
+                shadowColor: '#ffffff',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.8,
+                shadowRadius: 2,
+              }}
+            />
+          ))}
+        </>
       )}
       {backgroundConfigs[selectedBackground].type === 'solid' && (
         <View
@@ -696,17 +977,9 @@ const HomeScreen = ({ navigation }) => {
                 </TouchableWithoutFeedback>
               )}
               {isThemeSectionExpanded && (
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.themeScrollContainer}
-                  decelerationRate="fast"
-                  snapToInterval={90}
-                  snapToAlignment="start"
-                  bounces={false}
-                >
+                <View style={styles.themeCardsContainer}>
                   {renderThemeCards()}
-                </ScrollView>
+                </View>
               )}
             </View>
             </ScrollView>
@@ -808,6 +1081,27 @@ const HomeScreen = ({ navigation }) => {
                               ]}>
                                 <LinearGradient
                                   colors={isNightMode ? config.night.colors : config.day.colors}
+                                  start={isNightMode ? config.night.start : config.day.start}
+                                  end={isNightMode ? config.night.end : config.day.end}
+                                  style={styles.backgroundGradientPreview}
+                                />
+                                {selectedBackground === key && (
+                                  <View style={styles.backgroundCheckmark}>
+                                    <Ionicons name="checkmark" size={16} color="#fff" />
+                                  </View>
+                                )}
+                              </View>
+                            ) : config.type === 'animated-gradient' ? (
+                              <View style={[
+                                styles.backgroundPreview,
+                                selectedBackground === key && { borderColor: '#007AFF' }
+                              ]}>
+                                <LinearGradient
+                                  colors={
+                                    key === 'tropical' ? tropicalColors :
+                                    key === 'galaxy' ? galaxyColors :
+                                    oceanColors
+                                  }
                                   start={isNightMode ? config.night.start : config.day.start}
                                   end={isNightMode ? config.night.end : config.day.end}
                                   style={styles.backgroundGradientPreview}
@@ -1547,7 +1841,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 500,
     marginBottom: 15,
-    marginTop: 20,
+    marginTop: 5,
   },
   themeButtonRow: {
     flexDirection: 'row',
@@ -1590,15 +1884,19 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     letterSpacing: 0.5,
   },
-  themeScrollContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 5,
+  themeCardsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+    gap: 6,
   },
   themeCard: {
-    width: 80,
-    height: 100,
-    marginHorizontal: 5,
-    borderRadius: 12,
+    width: 50,
+    height: 70,
+    marginHorizontal: 3,
+    borderRadius: 10,
     borderWidth: 2,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     alignItems: 'center',
@@ -1621,8 +1919,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 1)',
     shadowOpacity: 0.4,
     elevation: 10,
-    transform: [{ scale: 1.08 }],
-    borderWidth: 3,
+    transform: [{ scale: 1.05 }],
+    borderWidth: 2.5,
     borderColor: '#007AFF',
   },
   selectedThemeCardNight: {
@@ -1630,24 +1928,24 @@ const styles = StyleSheet.create({
     borderColor: '#81b0ff',
   },
   themeEmoji: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   emojiText: {
-    fontSize: 24,
+    fontSize: 18,
   },
   checkmarkContainer: {
     position: 'absolute',
     top: -2,
     right: -2,
     backgroundColor: 'white',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+    borderRadius: 8,
+    width: 16,
+    height: 16,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -1663,7 +1961,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2a2a2a',
   },
   themeLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '500',
     color: '#666',
     textAlign: 'center',
@@ -1674,7 +1972,7 @@ const styles = StyleSheet.create({
   selectedThemeLabel: {
     color: '#000',
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 11,
   },
   selectedThemeLabelNight: {
     color: '#fff',
@@ -2046,13 +2344,15 @@ const styles = StyleSheet.create({
     width: 100,
     marginBottom: 15,
     alignItems: 'center',
+    minWidth: 100,
+    maxWidth: 100,
   },
   backgroundOptionSelected: {
     transform: [{ scale: 1.05 }],
   },
   backgroundPreview: {
     width: 100,
-    height: 100,
+    height: 140,
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 3,
@@ -2100,6 +2400,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#000000',
     textAlign: 'center',
+    width: 100,
+    flexWrap: 'wrap',
   },
   backgroundOptionLabelNight: {
     color: '#ffffff',
