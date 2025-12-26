@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "description": "Display large text from your pocket to communicate from a distance",
     "orientation": "default",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/pocketsay-logo-icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.iandev808.pocketsay",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIRequiresFullScreen": false,
