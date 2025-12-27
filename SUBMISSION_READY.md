@@ -5,7 +5,7 @@
 ### Code & Configuration
 - [x] App name updated to "PocketSay"
 - [x] All dependencies updated and verified (`expo-doctor` passes)
-- [x] Bundle ID configured: `com.iandev808.fontastic`
+- [x] Bundle ID configured: `com.iandev808.pocketsay`
 - [x] Version set: `1.0.0`
 - [x] Encryption declaration: `false` ✅
 - [x] Privacy configurations complete
@@ -21,7 +21,7 @@
 - [ ] Fill in:
   - **Name:** PocketSay
   - **Primary Language:** English
-  - **Bundle ID:** com.iandev808.fontastic (select from dropdown)
+  - **Bundle ID:** com.iandev808.pocketsay (select from dropdown)
   - **SKU:** pocketsay-001 (or any unique identifier)
 
 #### 2. App Information (Required)
@@ -134,7 +134,7 @@ Or manually:
 
 ## 📝 Important Notes
 
-- **Bundle ID:** Currently `com.iandev808.fontastic` - this is fine, doesn't need to match app name
+- **Bundle ID:** `com.iandev808.pocketsay`
 - **EAS Updates:** Your app uses Expo Updates, so you can push OTA updates without resubmitting
 - **Testing:** Make sure to test on a real device before submitting
 - **Screenshots:** Take screenshots showing the app's best features

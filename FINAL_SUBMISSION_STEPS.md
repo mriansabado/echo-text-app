@@ -6,7 +6,7 @@
 - [x] All dependencies updated and verified
 - [x] App icon configured (1024x1024)
 - [x] Splash screen configured (2048x2048)
-- [x] Bundle ID: `com.iandev808.fontastic`
+- [x] Bundle ID: `com.iandev808.pocketsay`
 - [x] Version: `1.0.0`
 - [x] All configurations verified
 
@@ -43,7 +43,7 @@ npx expo start
    - **Platform:** iOS
    - **Name:** PocketSay
    - **Primary Language:** English
-   - **Bundle ID:** com.iandev808.fontastic (select from dropdown)
+   - **Bundle ID:** com.iandev808.pocketsay (select from dropdown)
    - **SKU:** pocketsay-001 (any unique identifier)
 
 ### B. App Information

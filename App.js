@@ -11,6 +11,7 @@ import { createAudioPlayer } from 'expo-audio';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Stack = createStackNavigator();
 
@@ -78,6 +79,13 @@ const HomeScreen = ({ navigation }) => {
   const [selectedFontStyle, setSelectedFontStyle] = useState('default');
   const [showFontDropdown, setShowFontDropdown] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showQuickSay, setShowQuickSay] = useState(false);
+  const [savedSayings, setSavedSayings] = useState([]);
+  const [newSayingText, setNewSayingText] = useState('');
+  const quickSayScrollViewRef = useRef(null);
+  const [customDayColor, setCustomDayColor] = useState('#f7e5e7');
+  const [customNightColor, setCustomNightColor] = useState('#1e3a8a');
+  const [customColorTab, setCustomColorTab] = useState('day'); // 'day' or 'night'
   const [gradientColors, setGradientColors] = useState(['#E8F4F8', '#F0E6F5']);
   const [buttonGradientColors, setButtonGradientColors] = useState(['#4A90E2', '#357ABD']);
   const fadeOpacity = React.useRef(new Animated.Value(0)).current;
@@ -88,8 +96,32 @@ const HomeScreen = ({ navigation }) => {
   const galaxyAnim = React.useRef(new Animated.Value(0)).current;
   const [galaxyColors, setGalaxyColors] = useState(['#1a0033', '#4a148c', '#7b1fa2']);
   const [starAnimations, setStarAnimations] = useState([]);
-  const oceanAnim = React.useRef(new Animated.Value(0)).current;
-  const [oceanColors, setOceanColors] = useState(['#006994', '#00A8CC', '#4ECDC4']);
+  const rainbowAnim = React.useRef(new Animated.Value(0)).current;
+  const [rainbowColors, setRainbowColors] = useState(['#FF0000', '#FF8800', '#FFD700', '#8B00FF']);
+  const sunsetAnim = React.useRef(new Animated.Value(0)).current;
+  const [sunsetColors, setSunsetColors] = useState(['#ef4444', '#f97316', '#fbbf24', '#3b82f6']);
+  const retroAnim = React.useRef(new Animated.Value(0)).current;
+  const [retroColors, setRetroColors] = useState(['#FF00FF', '#00FFFF', '#FF00FF', '#FFFF00']);
+  const forestAnim = React.useRef(new Animated.Value(0)).current;
+  const [forestColors, setForestColors] = useState(['#228B22', '#8B7355', '#6B8E23', '#9ACD32']);
+  const blossomAnim = React.useRef(new Animated.Value(0)).current;
+  const [blossomColors, setBlossomColors] = useState(['#FFB6C1', '#FFC0CB', '#FF69B4', '#FFE4E1']);
+  
+  // Preview-specific animations (always running for preview cards)
+  const tropicalPreviewAnim = React.useRef(new Animated.Value(0)).current;
+  const [tropicalPreviewColors, setTropicalPreviewColors] = useState(['#40E0D0', '#FF6B6B', '#7FCDBB']);
+  const galaxyPreviewAnim = React.useRef(new Animated.Value(0)).current;
+  const [galaxyPreviewColors, setGalaxyPreviewColors] = useState(['#1a0033', '#4a148c', '#7b1fa2']);
+  const rainbowPreviewAnim = React.useRef(new Animated.Value(0)).current;
+  const [rainbowPreviewColors, setRainbowPreviewColors] = useState(['#FF0000', '#FF8800', '#FFD700', '#8B00FF']);
+  const sunsetPreviewAnim = React.useRef(new Animated.Value(0)).current;
+  const [sunsetPreviewColors, setSunsetPreviewColors] = useState(['#ef4444', '#f97316', '#fbbf24', '#3b82f6']);
+  const retroPreviewAnim = React.useRef(new Animated.Value(0)).current;
+  const [retroPreviewColors, setRetroPreviewColors] = useState(['#FF00FF', '#00FFFF', '#FF00FF', '#FFFF00']);
+  const forestPreviewAnim = React.useRef(new Animated.Value(0)).current;
+  const [forestPreviewColors, setForestPreviewColors] = useState(['#228B22', '#8B7355', '#6B8E23', '#9ACD32']);
+  const blossomPreviewAnim = React.useRef(new Animated.Value(0)).current;
+  const [blossomPreviewColors, setBlossomPreviewColors] = useState(['#FFB6C1', '#FFC0CB', '#FF69B4', '#FFE4E1']);
   
 
   useEffect(() => {
@@ -103,11 +135,74 @@ const HomeScreen = ({ navigation }) => {
 
     lockOrientation();
 
+    // Load saved sayings on mount
+    loadSavedSayings();
+
     return () => {
       subscription.remove();
       ScreenOrientation.unlockAsync();
     };
   }, []);
+
+  // Load saved sayings from AsyncStorage
+  const loadSavedSayings = async () => {
+    try {
+      const data = await AsyncStorage.getItem('quickSaySayings');
+      if (data) {
+        setSavedSayings(JSON.parse(data));
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.log('Error loading saved sayings:', error);
+      }
+    }
+  };
+
+  // Save sayings to AsyncStorage
+  const saveSayings = async (sayings) => {
+    try {
+      await AsyncStorage.setItem('quickSaySayings', JSON.stringify(sayings));
+      setSavedSayings(sayings);
+    } catch (error) {
+      if (__DEV__) {
+        console.log('Error saving sayings:', error);
+      }
+    }
+  };
+
+  // Add a new saying
+  const handleSaveNewSaying = () => {
+    const trimmedText = newSayingText.trim();
+    if (trimmedText.length === 0) return;
+    if (trimmedText.length > 68) {
+      // Truncate to 68 characters
+      const truncated = trimmedText.substring(0, 68);
+      if (savedSayings.length < 5) {
+        const newSayings = [...savedSayings, truncated];
+        saveSayings(newSayings);
+        setNewSayingText('');
+      }
+    } else {
+      if (savedSayings.length < 5) {
+        const newSayings = [...savedSayings, trimmedText];
+        saveSayings(newSayings);
+        setNewSayingText('');
+      }
+    }
+  };
+
+  // Delete a saying
+  const handleDeleteSaying = (index) => {
+    const newSayings = savedSayings.filter((_, i) => i !== index);
+    saveSayings(newSayings);
+  };
+
+  // Insert a saying into the input box
+  const handleInsertSaying = (saying) => {
+    setText(saying);
+    setShowQuickSay(false);
+    Keyboard.dismiss();
+  };
 
   // Helper function to interpolate between hex colors
   const interpolateColor = (color1, color2, factor) => {
@@ -342,30 +437,130 @@ const HomeScreen = ({ navigation }) => {
       },
       previewColor: '#4a148c',
     },
-    ocean: {
-      name: 'Ocean',
+    rainbow: {
+      name: 'Rainbow',
       type: 'animated-gradient',
       day: { 
         colorSets: [
-          ['#006994', '#00A8CC', '#4ECDC4'], // Deep Blue, Bright Cyan, Turquoise
-          ['#00A8CC', '#4ECDC4', '#87CEEB'], // Bright Cyan, Turquoise, Sky Blue
-          ['#4ECDC4', '#87CEEB', '#B0E0E6'], // Turquoise, Sky Blue, Powder Blue
-          ['#87CEEB', '#B0E0E6', '#006994'], // Sky Blue, Powder Blue, Deep Blue
+          ['#FF0000', '#FF8800', '#FFD700', '#8B00FF'], // Red, Orange, Gold, Violet
+          ['#FF8800', '#FFD700', '#8B00FF', '#FF0000'], // Orange, Gold, Violet, Red
+          ['#FFD700', '#8B00FF', '#FF0000', '#FF8800'], // Gold, Violet, Red, Orange
+          ['#8B00FF', '#FF0000', '#FF8800', '#FFD700'], // Violet, Red, Orange, Gold
         ],
         start: { x: 0, y: 0 },
         end: { x: 1, y: 1 }
       },
       night: { 
         colorSets: [
-          ['#001F3F', '#003366', '#004080'], // Deep Ocean, Navy, Dark Blue
-          ['#003366', '#004080', '#0059B3'], // Navy, Dark Blue, Midnight Blue
-          ['#004080', '#0059B3', '#0066CC'], // Dark Blue, Midnight Blue, Ocean Blue
-          ['#0059B3', '#0066CC', '#001F3F'], // Midnight Blue, Ocean Blue, Deep Ocean
+          ['#CC0000', '#CC6600', '#CCAA00', '#6B00CC'], // Darker Red, Orange, Gold, Violet
+          ['#CC6600', '#CCAA00', '#6B00CC', '#CC0000'], // Darker Orange, Gold, Violet, Red
+          ['#CCAA00', '#6B00CC', '#CC0000', '#CC6600'], // Darker Gold, Violet, Red, Orange
+          ['#6B00CC', '#CC0000', '#CC6600', '#CCAA00'], // Darker Violet, Red, Orange, Gold
         ],
         start: { x: 0, y: 0 },
         end: { x: 1, y: 1 }
       },
-      previewColor: '#00A8CC',
+      previewColor: '#FF8800',
+    },
+    sunset: {
+      name: 'Sunset',
+      type: 'animated-gradient',
+      day: { 
+        colorSets: [
+          ['#ef4444', '#f97316', '#fbbf24', '#3b82f6'], // Red, Orange, Yellow, Blue
+          ['#f97316', '#fbbf24', '#3b82f6', '#ef4444'], // Orange, Yellow, Blue, Red
+          ['#fbbf24', '#3b82f6', '#ef4444', '#f97316'], // Yellow, Blue, Red, Orange
+          ['#3b82f6', '#ef4444', '#f97316', '#fbbf24'], // Blue, Red, Orange, Yellow
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      night: { 
+        colorSets: [
+          ['#dc2626', '#ea580c', '#f59e0b', '#2563eb'], // Darker Red, Orange, Yellow, Blue
+          ['#ea580c', '#f59e0b', '#2563eb', '#dc2626'], // Darker Orange, Yellow, Blue, Red
+          ['#f59e0b', '#2563eb', '#dc2626', '#ea580c'], // Darker Yellow, Blue, Red, Orange
+          ['#2563eb', '#dc2626', '#ea580c', '#f59e0b'], // Darker Blue, Red, Orange, Yellow
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      previewColor: '#f97316',
+    },
+    retro: {
+      name: '80s Pop',
+      type: 'animated-gradient',
+      day: { 
+        colorSets: [
+          ['#FF00FF', '#00FFFF', '#FF00FF', '#FFFF00'], // Hot Pink, Cyan, Hot Pink, Neon Yellow
+          ['#00FFFF', '#FF00FF', '#FFFF00', '#FF00FF'], // Cyan, Hot Pink, Neon Yellow, Hot Pink
+          ['#FF00FF', '#FFFF00', '#FF00FF', '#00FFFF'], // Hot Pink, Neon Yellow, Hot Pink, Cyan
+          ['#FFFF00', '#FF00FF', '#00FFFF', '#FF00FF'], // Neon Yellow, Hot Pink, Cyan, Hot Pink
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      night: { 
+        colorSets: [
+          ['#CC00CC', '#00CCCC', '#CC00CC', '#CCCC00'], // Darker Hot Pink, Darker Cyan, Darker Hot Pink, Darker Yellow
+          ['#00CCCC', '#CC00CC', '#CCCC00', '#CC00CC'], // Darker Cyan, Darker Hot Pink, Darker Yellow, Darker Hot Pink
+          ['#CC00CC', '#CCCC00', '#CC00CC', '#00CCCC'], // Darker Hot Pink, Darker Yellow, Darker Hot Pink, Darker Cyan
+          ['#CCCC00', '#CC00CC', '#00CCCC', '#CC00CC'], // Darker Yellow, Darker Hot Pink, Darker Cyan, Darker Hot Pink
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      previewColor: '#FF00FF',
+    },
+    forest: {
+      name: 'Forest',
+      type: 'animated-gradient',
+      day: { 
+        colorSets: [
+          ['#228B22', '#8B7355', '#6B8E23', '#9ACD32'], // Forest Green, Tan, Olive, Yellow Green
+          ['#8B7355', '#6B8E23', '#9ACD32', '#228B22'], // Tan, Olive, Yellow Green, Forest Green
+          ['#6B8E23', '#9ACD32', '#228B22', '#8B7355'], // Olive, Yellow Green, Forest Green, Tan
+          ['#9ACD32', '#228B22', '#8B7355', '#6B8E23'], // Yellow Green, Forest Green, Tan, Olive
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      night: { 
+        colorSets: [
+          ['#0F5132', '#3D2817', '#2F4F2F', '#4A5D23'], // Dark Forest, Dark Brown, Dark Olive, Dark Moss
+          ['#3D2817', '#2F4F2F', '#4A5D23', '#0F5132'], // Dark Brown, Dark Olive, Dark Moss, Dark Forest
+          ['#2F4F2F', '#4A5D23', '#0F5132', '#3D2817'], // Dark Olive, Dark Moss, Dark Forest, Dark Brown
+          ['#4A5D23', '#0F5132', '#3D2817', '#2F4F2F'], // Dark Moss, Dark Forest, Dark Brown, Dark Olive
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      previewColor: '#228B22',
+    },
+    blossom: {
+      name: 'Blossom',
+      type: 'animated-gradient',
+      day: { 
+        colorSets: [
+          ['#FFB6C1', '#FFC0CB', '#FF69B4', '#FFE4E1'], // Light Pink, Pink, Hot Pink, Misty Rose
+          ['#FFC0CB', '#FF69B4', '#FFE4E1', '#FFB6C1'], // Pink, Hot Pink, Misty Rose, Light Pink
+          ['#FF69B4', '#FFE4E1', '#FFB6C1', '#FFC0CB'], // Hot Pink, Misty Rose, Light Pink, Pink
+          ['#FFE4E1', '#FFB6C1', '#FFC0CB', '#FF69B4'], // Misty Rose, Light Pink, Pink, Hot Pink
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      night: { 
+        colorSets: [
+          ['#8B4C6B', '#8B4C7A', '#8B4789', '#8B5A7A'], // Dark Pink, Dark Rose, Dark Magenta, Dark Mauve
+          ['#8B4C7A', '#8B4789', '#8B5A7A', '#8B4C6B'], // Dark Rose, Dark Magenta, Dark Mauve, Dark Pink
+          ['#8B4789', '#8B5A7A', '#8B4C6B', '#8B4C7A'], // Dark Magenta, Dark Mauve, Dark Pink, Dark Rose
+          ['#8B5A7A', '#8B4C6B', '#8B4C7A', '#8B4789'], // Dark Mauve, Dark Pink, Dark Rose, Dark Magenta
+        ],
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 1 }
+      },
+      previewColor: '#FFB6C1',
     },
   };
 
@@ -517,37 +712,38 @@ const HomeScreen = ({ navigation }) => {
     };
   }, [selectedBackground, dimensions]);
 
-  // Animate ocean gradient background
+  // Animate rainbow gradient background
   useEffect(() => {
-    if (selectedBackground !== 'ocean') return;
+    if (selectedBackground !== 'rainbow') return;
 
-    const config = backgroundConfigs.ocean;
+    const config = backgroundConfigs.rainbow;
     const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
 
-    const listener = oceanAnim.addListener(({ value }) => {
+    const listener = rainbowAnim.addListener(({ value }) => {
       const index = Math.floor(value * (colorSets.length - 1));
       const nextIndex = Math.min(index + 1, colorSets.length - 1);
       const progress = (value * (colorSets.length - 1)) - index;
       
-      // Interpolate between color sets (3 colors for ocean)
+      // Interpolate between color sets (4 colors for rainbow)
       const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
       const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
       const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
       
-      setOceanColors([color1, color2, color3]);
+      setRainbowColors([color1, color2, color3, color4]);
     });
 
     const startAnimation = () => {
       Animated.loop(
         Animated.sequence([
-          Animated.timing(oceanAnim, {
+          Animated.timing(rainbowAnim, {
             toValue: 1,
-            duration: 9000, // Smooth 9 second transition for wave-like feel
+            duration: 8000, // Smooth 8 second transition for vibrant rainbow feel
             useNativeDriver: false,
           }),
-          Animated.timing(oceanAnim, {
+          Animated.timing(rainbowAnim, {
             toValue: 0,
-            duration: 9000,
+            duration: 8000,
             useNativeDriver: false,
           }),
         ])
@@ -557,9 +753,475 @@ const HomeScreen = ({ navigation }) => {
     startAnimation();
     
     return () => {
-      oceanAnim.removeListener(listener);
+      rainbowAnim.removeListener(listener);
     };
   }, [selectedBackground, isNightMode]);
+
+  // Animate sunset gradient background
+  useEffect(() => {
+    if (selectedBackground !== 'sunset') return;
+
+    const config = backgroundConfigs.sunset;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = sunsetAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      // Interpolate between color sets (4 colors for sunset)
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
+      
+      setSunsetColors([color1, color2, color3, color4]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(sunsetAnim, {
+            toValue: 1,
+            duration: 8500, // Smooth 8.5 second transition for vibrant sunset feel
+            useNativeDriver: false,
+          }),
+          Animated.timing(sunsetAnim, {
+            toValue: 0,
+            duration: 8500,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      sunsetAnim.removeListener(listener);
+    };
+  }, [selectedBackground, isNightMode]);
+
+  // Animate retro gradient background
+  useEffect(() => {
+    if (selectedBackground !== 'retro') return;
+
+    const config = backgroundConfigs.retro;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = retroAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      // Interpolate between color sets (4 colors for retro)
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
+      
+      setRetroColors([color1, color2, color3, color4]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(retroAnim, {
+            toValue: 1,
+            duration: 7800, // Smooth 7.8 second transition for energetic 80s pop feel
+            useNativeDriver: false,
+          }),
+          Animated.timing(retroAnim, {
+            toValue: 0,
+            duration: 7800,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      retroAnim.removeListener(listener);
+    };
+  }, [selectedBackground, isNightMode]);
+
+  // Animate forest gradient background
+  useEffect(() => {
+    if (selectedBackground !== 'forest') return;
+
+    const config = backgroundConfigs.forest;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = forestAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      // Interpolate between color sets (4 colors for forest)
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
+      
+      setForestColors([color1, color2, color3, color4]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(forestAnim, {
+            toValue: 1,
+            duration: 9500, // Smooth 9.5 second transition for natural forest feel
+            useNativeDriver: false,
+          }),
+          Animated.timing(forestAnim, {
+            toValue: 0,
+            duration: 9500,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      forestAnim.removeListener(listener);
+    };
+  }, [selectedBackground, isNightMode]);
+
+  // Animate blossom gradient background
+  useEffect(() => {
+    if (selectedBackground !== 'blossom') return;
+
+    const config = backgroundConfigs.blossom;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = blossomAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      // Interpolate between color sets (4 colors for blossom)
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
+      
+      setBlossomColors([color1, color2, color3, color4]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(blossomAnim, {
+            toValue: 1,
+            duration: 8800, // Smooth 8.8 second transition for gentle blossom feel
+            useNativeDriver: false,
+          }),
+          Animated.timing(blossomAnim, {
+            toValue: 0,
+            duration: 8800,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      blossomAnim.removeListener(listener);
+    };
+  }, [selectedBackground, isNightMode]);
+
+  // Animate preview gradients (always running for preview cards)
+  useEffect(() => {
+    const config = backgroundConfigs.tropical;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = tropicalPreviewAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      
+      setTropicalPreviewColors([color1, color2, color3]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(tropicalPreviewAnim, {
+            toValue: 1,
+            duration: 8000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(tropicalPreviewAnim, {
+            toValue: 0,
+            duration: 8000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      tropicalPreviewAnim.removeListener(listener);
+    };
+  }, [isNightMode]);
+
+  useEffect(() => {
+    const config = backgroundConfigs.galaxy;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = galaxyPreviewAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      
+      setGalaxyPreviewColors([color1, color2, color3]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(galaxyPreviewAnim, {
+            toValue: 1,
+            duration: 10000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(galaxyPreviewAnim, {
+            toValue: 0,
+            duration: 10000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      galaxyPreviewAnim.removeListener(listener);
+    };
+  }, [isNightMode]);
+
+  useEffect(() => {
+    const config = backgroundConfigs.rainbow;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = rainbowPreviewAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
+      
+      setRainbowPreviewColors([color1, color2, color3, color4]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(rainbowPreviewAnim, {
+            toValue: 1,
+            duration: 8000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(rainbowPreviewAnim, {
+            toValue: 0,
+            duration: 8000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      rainbowPreviewAnim.removeListener(listener);
+    };
+  }, [isNightMode]);
+
+  useEffect(() => {
+    const config = backgroundConfigs.sunset;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = sunsetPreviewAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
+      
+      setSunsetPreviewColors([color1, color2, color3, color4]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(sunsetPreviewAnim, {
+            toValue: 1,
+            duration: 8500,
+            useNativeDriver: false,
+          }),
+          Animated.timing(sunsetPreviewAnim, {
+            toValue: 0,
+            duration: 8500,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      sunsetPreviewAnim.removeListener(listener);
+    };
+  }, [isNightMode]);
+
+  useEffect(() => {
+    const config = backgroundConfigs.retro;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = retroPreviewAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
+      
+      setRetroPreviewColors([color1, color2, color3, color4]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(retroPreviewAnim, {
+            toValue: 1,
+            duration: 7800,
+            useNativeDriver: false,
+          }),
+          Animated.timing(retroPreviewAnim, {
+            toValue: 0,
+            duration: 7800,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      retroPreviewAnim.removeListener(listener);
+    };
+  }, [isNightMode]);
+
+  useEffect(() => {
+    const config = backgroundConfigs.forest;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = forestPreviewAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
+      
+      setForestPreviewColors([color1, color2, color3, color4]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(forestPreviewAnim, {
+            toValue: 1,
+            duration: 9500,
+            useNativeDriver: false,
+          }),
+          Animated.timing(forestPreviewAnim, {
+            toValue: 0,
+            duration: 9500,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      forestPreviewAnim.removeListener(listener);
+    };
+  }, [isNightMode]);
+
+  useEffect(() => {
+    const config = backgroundConfigs.blossom;
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+
+    const listener = blossomPreviewAnim.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
+      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
+      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
+      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
+      
+      setBlossomPreviewColors([color1, color2, color3, color4]);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(blossomPreviewAnim, {
+            toValue: 1,
+            duration: 8800,
+            useNativeDriver: false,
+          }),
+          Animated.timing(blossomPreviewAnim, {
+            toValue: 0,
+            duration: 8800,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      blossomPreviewAnim.removeListener(listener);
+    };
+  }, [isNightMode]);
 
   const transitionToResults = async (resultsBackgroundColor) => {
     try {
@@ -717,7 +1379,7 @@ const HomeScreen = ({ navigation }) => {
       <SafeAreaView style={[styles.container, { backgroundColor: isNightMode ? '#000000' : 'transparent' }]} edges={['top']}>
         <StatusBar style="dark" />
       {/* Background rendering based on selected type */}
-      {backgroundConfigs[selectedBackground].type === 'lottie' && (
+      {backgroundConfigs[selectedBackground] && backgroundConfigs[selectedBackground].type === 'lottie' && (
         <LottieView
           source={isNightMode ? backgroundConfigs[selectedBackground].night : backgroundConfigs[selectedBackground].day}
           autoPlay
@@ -733,7 +1395,7 @@ const HomeScreen = ({ navigation }) => {
           }}
         />
       )}
-      {backgroundConfigs[selectedBackground].type === 'gradient' && (
+      {backgroundConfigs[selectedBackground] && backgroundConfigs[selectedBackground].type === 'gradient' && (
         <LinearGradient
           colors={isNightMode ? backgroundConfigs[selectedBackground].night.colors : backgroundConfigs[selectedBackground].day.colors}
           start={isNightMode ? backgroundConfigs[selectedBackground].night.start : backgroundConfigs[selectedBackground].day.start}
@@ -749,13 +1411,17 @@ const HomeScreen = ({ navigation }) => {
           }}
         />
       )}
-      {backgroundConfigs[selectedBackground].type === 'animated-gradient' && (
+      {backgroundConfigs[selectedBackground] && backgroundConfigs[selectedBackground].type === 'animated-gradient' && (
         <>
           <LinearGradient
             colors={
               selectedBackground === 'tropical' ? tropicalColors :
               selectedBackground === 'galaxy' ? galaxyColors :
-              oceanColors
+              selectedBackground === 'rainbow' ? rainbowColors :
+              selectedBackground === 'sunset' ? sunsetColors :
+              selectedBackground === 'retro' ? retroColors :
+              selectedBackground === 'forest' ? forestColors :
+              blossomColors
             }
             start={isNightMode ? backgroundConfigs[selectedBackground].night.start : backgroundConfigs[selectedBackground].day.start}
             end={isNightMode ? backgroundConfigs[selectedBackground].night.end : backgroundConfigs[selectedBackground].day.end}
@@ -790,7 +1456,7 @@ const HomeScreen = ({ navigation }) => {
           ))}
         </>
       )}
-      {backgroundConfigs[selectedBackground].type === 'solid' && (
+      {backgroundConfigs[selectedBackground] && backgroundConfigs[selectedBackground].type === 'solid' && (
         <View
           style={{
             position: 'absolute',
@@ -800,7 +1466,24 @@ const HomeScreen = ({ navigation }) => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: isNightMode ? backgroundConfigs[selectedBackground].night.color : backgroundConfigs[selectedBackground].day.color,
+            backgroundColor: isNightMode 
+              ? backgroundConfigs[selectedBackground].night?.color
+              : backgroundConfigs[selectedBackground].day?.color,
+          }}
+        />
+      )}
+      {/* Custom color background (when no background is selected or custom mode is active) */}
+      {(!backgroundConfigs[selectedBackground] || selectedBackground === 'custom') && (
+        <View
+          style={{
+            position: 'absolute',
+            width: dimensions.width,
+            height: dimensions.height,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: isNightMode ? customNightColor : customDayColor,
           }}
         />
       )}
@@ -810,9 +1493,11 @@ const HomeScreen = ({ navigation }) => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
           <TouchableWithoutFeedback onPress={() => {
-            dismissKeyboard();
-            setShowFontDropdown(false);
-            setIsThemeSectionExpanded(false);
+            if (!showQuickSay && !showFontDropdown && !isThemeSectionExpanded) {
+              dismissKeyboard();
+              setShowFontDropdown(false);
+              setIsThemeSectionExpanded(false);
+            }
           }}>
             <ScrollView 
               contentContainerStyle={styles.mainContent}
@@ -878,26 +1563,10 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.themeSection}>
               <View style={styles.themeButtonRow}>
                 <TouchableOpacity 
-                  onPress={() => setIsThemeSectionExpanded(!isThemeSectionExpanded)}
-                  activeOpacity={0.8}
-                  style={styles.themeButtonWrapper}
-                >
-                  <LinearGradient
-                    colors={isNightMode ? ['#2a2a2a', '#1a1a1a'] : gradientColors}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[
-                      styles.themeTitleContainer,
-                      isNightMode && styles.themeTitleContainerNight
-                    ]}
-                  >
-                    <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Theme</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-                <TouchableOpacity 
                   onPress={() => {
-                    setShowFontDropdown(!showFontDropdown);
-                    setIsThemeSectionExpanded(false);
+                    setIsThemeSectionExpanded(!isThemeSectionExpanded);
+                    setShowFontDropdown(false);
+                    setShowQuickSay(false);
                   }}
                   activeOpacity={0.8}
                   style={styles.themeButtonWrapper}
@@ -908,10 +1577,58 @@ const HomeScreen = ({ navigation }) => {
                     end={{ x: 1, y: 1 }}
                     style={[
                       styles.themeTitleContainer,
-                      isNightMode && styles.themeTitleContainerNight
+                      isNightMode && styles.themeTitleContainerNight,
+                      isThemeSectionExpanded && styles.themeTitleContainerSelected,
+                      isThemeSectionExpanded && isNightMode && styles.themeTitleContainerSelectedNight
+                    ]}
+                  >
+                    <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Theme</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setShowFontDropdown(!showFontDropdown);
+                    setIsThemeSectionExpanded(false);
+                    setShowQuickSay(false);
+                  }}
+                  activeOpacity={0.8}
+                  style={styles.themeButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={isNightMode ? ['#2a2a2a', '#1a1a1a'] : gradientColors}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[
+                      styles.themeTitleContainer,
+                      isNightMode && styles.themeTitleContainerNight,
+                      showFontDropdown && styles.themeTitleContainerSelected,
+                      showFontDropdown && isNightMode && styles.themeTitleContainerSelectedNight
                     ]}
                   >
                     <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Font</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setShowQuickSay(!showQuickSay);
+                    setIsThemeSectionExpanded(false);
+                    setShowFontDropdown(false);
+                  }}
+                  activeOpacity={0.8}
+                  style={styles.themeButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={isNightMode ? ['#2a2a2a', '#1a1a1a'] : gradientColors}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[
+                      styles.themeTitleContainer,
+                      isNightMode && styles.themeTitleContainerNight,
+                      showQuickSay && styles.themeTitleContainerSelected,
+                      showQuickSay && isNightMode && styles.themeTitleContainerSelectedNight
+                    ]}
+                  >
+                    <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Quick Say</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -979,6 +1696,142 @@ const HomeScreen = ({ navigation }) => {
               {isThemeSectionExpanded && (
                 <View style={styles.themeCardsContainer}>
                   {renderThemeCards()}
+                </View>
+              )}
+              {showQuickSay && (
+                <View style={[
+                  styles.quickSayDropdown,
+                  isNightMode && styles.quickSayDropdownNight
+                ]}>
+                  <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+                  >
+                    <ScrollView 
+                      ref={quickSayScrollViewRef}
+                      showsVerticalScrollIndicator={false}
+                      contentContainerStyle={[
+                        styles.quickSayContent,
+                        savedSayings.length === 0 && styles.quickSayContentNoItems
+                      ]}
+                      nestedScrollEnabled={true}
+                      keyboardShouldPersistTaps="handled"
+                      keyboardDismissMode="none"
+                      bounces={false}
+                    >
+                      {/* Saved Sayings List */}
+                      {savedSayings.length > 0 && (
+                        <View style={styles.savedSayingsContainer}>
+                          {savedSayings.map((saying, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              onPress={() => handleInsertSaying(saying)}
+                              activeOpacity={0.7}
+                              style={[
+                                styles.sayingCard,
+                                isNightMode && styles.sayingCardNight
+                              ]}
+                            >
+                              <View style={styles.sayingCardContent}>
+                                <Text 
+                                  style={[
+                                    styles.sayingPreview,
+                                    isNightMode && styles.sayingPreviewNight
+                                  ]}
+                                  numberOfLines={1}
+                                >
+                                  {saying}
+                                </Text>
+                                <Text style={[
+                                  styles.sayingLength,
+                                  isNightMode && styles.sayingLengthNight
+                                ]}>
+                                  {saying.length}/68
+                                </Text>
+                              </View>
+                              <TouchableOpacity
+                                onPress={() => handleDeleteSaying(index)}
+                                style={styles.deleteSayingButton}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                              >
+                                <Ionicons 
+                                  name="close-circle" 
+                                  size={18} 
+                                  color={isNightMode ? '#ff6b6b' : '#ff4444'} 
+                                />
+                              </TouchableOpacity>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
+                      
+                      {/* Add New Saying Section */}
+                      <View style={styles.addSayingContainer}>
+                        <Text style={[
+                          styles.addSayingTitle,
+                          isNightMode && styles.addSayingTitleNight
+                        ]}>
+                          {savedSayings.length >= 5 ? 'Maximum 5 sayings reached' : 'Add New Saying'}
+                        </Text>
+                        <View style={styles.addSayingInputContainer}>
+                          <TextInput
+                            style={[
+                              styles.addSayingInput,
+                              isNightMode && styles.addSayingInputNight,
+                              newSayingText.length >= 68 && styles.addSayingInputLimit
+                            ]}
+                            value={newSayingText}
+                            onChangeText={(text) => {
+                              if (text.length <= 68) {
+                                setNewSayingText(text);
+                              }
+                            }}
+                            onFocus={() => {
+                              // Scroll to input when focused to keep it visible above keyboard
+                              setTimeout(() => {
+                                quickSayScrollViewRef.current?.scrollToEnd({ animated: true });
+                              }, 300);
+                            }}
+                            placeholder="Type a saying to save..."
+                            placeholderTextColor={isNightMode ? "#888" : "#999"}
+                            maxLength={68}
+                            multiline={true}
+                            editable={savedSayings.length < 5}
+                          />
+                          <Text style={[
+                            styles.addSayingCharCount,
+                            isNightMode && styles.addSayingCharCountNight,
+                            newSayingText.length >= 68 && styles.addSayingCharCountLimit
+                          ]}>
+                            {newSayingText.length}/68
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={handleSaveNewSaying}
+                          disabled={newSayingText.trim().length === 0 || savedSayings.length >= 5}
+                          activeOpacity={0.7}
+                          style={[
+                            styles.saveSayingButton,
+                            (newSayingText.trim().length === 0 || savedSayings.length >= 5) && styles.saveSayingButtonDisabled,
+                            isNightMode && styles.saveSayingButtonNight
+                          ]}
+                        >
+                          <LinearGradient
+                            colors={
+                              (newSayingText.trim().length === 0 || savedSayings.length >= 5)
+                                ? ['#999', '#777']
+                                : buttonGradientColors
+                            }
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.saveSayingButtonGradient}
+                          >
+                            <Text style={styles.saveSayingButtonText}>Save</Text>
+                          </LinearGradient>
+                        </TouchableOpacity>
+                      </View>
+                    </ScrollView>
+                  </KeyboardAvoidingView>
                 </View>
               )}
             </View>
@@ -1098,9 +1951,13 @@ const HomeScreen = ({ navigation }) => {
                               ]}>
                                 <LinearGradient
                                   colors={
-                                    key === 'tropical' ? tropicalColors :
-                                    key === 'galaxy' ? galaxyColors :
-                                    oceanColors
+                                    key === 'tropical' ? tropicalPreviewColors :
+                                    key === 'galaxy' ? galaxyPreviewColors :
+                                    key === 'rainbow' ? rainbowPreviewColors :
+                                    key === 'sunset' ? sunsetPreviewColors :
+                                    key === 'retro' ? retroPreviewColors :
+                                    key === 'forest' ? forestPreviewColors :
+                                    blossomPreviewColors
                                   }
                                   start={isNightMode ? config.night.start : config.day.start}
                                   end={isNightMode ? config.night.end : config.day.end}
@@ -1137,6 +1994,126 @@ const HomeScreen = ({ navigation }) => {
                           </TouchableOpacity>
                         ))}
                       </View>
+                    </View>
+                    
+                    {/* Custom Color Picker Section */}
+                    <View style={styles.settingsSection}>
+                      <Text style={[
+                        styles.settingsSectionTitle,
+                        isNightMode && styles.settingsSectionTitleNight
+                      ]}>
+                        Custom Colors
+                      </Text>
+                      
+                      {/* Tab Buttons */}
+                      <View style={styles.themeButtonRow}>
+                        <TouchableOpacity 
+                          onPress={() => {
+                            setCustomColorTab('day');
+                          }}
+                          activeOpacity={0.8}
+                          style={styles.themeButtonWrapper}
+                        >
+                          <LinearGradient
+                            colors={isNightMode ? ['#2a2a2a', '#1a1a1a'] : gradientColors}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={[
+                              styles.themeTitleContainer,
+                              isNightMode && styles.themeTitleContainerNight,
+                              customColorTab === 'day' && styles.themeTitleContainerSelected,
+                              customColorTab === 'day' && isNightMode && styles.themeTitleContainerSelectedNight
+                            ]}
+                          >
+                            <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Day Mode</Text>
+                          </LinearGradient>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          onPress={() => {
+                            setCustomColorTab('night');
+                          }}
+                          activeOpacity={0.8}
+                          style={styles.themeButtonWrapper}
+                        >
+                          <LinearGradient
+                            colors={isNightMode ? ['#2a2a2a', '#1a1a1a'] : gradientColors}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={[
+                              styles.themeTitleContainer,
+                              isNightMode && styles.themeTitleContainerNight,
+                              customColorTab === 'night' && styles.themeTitleContainerSelected,
+                              customColorTab === 'night' && isNightMode && styles.themeTitleContainerSelectedNight
+                            ]}
+                          >
+                            <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Night Mode</Text>
+                          </LinearGradient>
+                        </TouchableOpacity>
+                      </View>
+                      
+                      {/* Day Mode Color Picker */}
+                      {customColorTab === 'day' && (
+                        <View style={styles.colorPickerContainer}>
+                          <View style={styles.colorGrid}>
+                            {[
+                              '#f7e5e7', '#E8F4F8', '#FFF5E1', '#FFE5E5', '#E0F6FF',
+                              '#FFE4B5', '#F0E68C', '#DDA0DD', '#98D8C8', '#F5DEB3',
+                              '#FFB6C1', '#B0E0E6', '#FFDAB9', '#E6E6FA', '#F0FFF0',
+                              '#FFEFD5', '#FFF8DC', '#F5F5DC', '#FFE4E1', '#E0FFFF'
+                            ].map((color, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                onPress={() => {
+                                  setCustomDayColor(color);
+                                  setSelectedBackground('custom');
+                                }}
+                                style={[
+                                  styles.colorSwatch,
+                                  customDayColor === color && styles.colorSwatchSelected,
+                                  { backgroundColor: color },
+                                  customDayColor === color && { borderColor: isNightMode ? '#81b0ff' : '#007AFF' }
+                                ]}
+                              >
+                                {customDayColor === color && (
+                                  <Ionicons name="checkmark" size={16} color={isNightMode ? '#81b0ff' : '#007AFF'} />
+                                )}
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+                      
+                      {/* Night Mode Color Picker */}
+                      {customColorTab === 'night' && (
+                        <View style={styles.colorPickerContainer}>
+                          <View style={styles.colorGrid}>
+                            {[
+                              '#1e3a8a', '#1a1a2e', '#16213e', '#0f3460', '#2d0047',
+                              '#1a0033', '#0a0014', '#001F3F', '#003366', '#004080',
+                              '#2d5016', '#4a3728', '#6b4423', '#8B3A3A', '#0A4D68',
+                              '#1a1a1a', '#2a2a2a', '#3a3a3a', '#4a4a4a', '#000000'
+                            ].map((color, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                onPress={() => {
+                                  setCustomNightColor(color);
+                                  setSelectedBackground('custom');
+                                }}
+                                style={[
+                                  styles.colorSwatch,
+                                  customNightColor === color && styles.colorSwatchSelected,
+                                  { backgroundColor: color },
+                                  customNightColor === color && { borderColor: isNightMode ? '#81b0ff' : '#007AFF' }
+                                ]}
+                              >
+                                {customNightColor === color && (
+                                  <Ionicons name="checkmark" size={16} color={isNightMode ? '#81b0ff' : '#007AFF'} />
+                                )}
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        </View>
+                      )}
                     </View>
                     
                     {/* Future customizations can be added here */}
@@ -1870,13 +2847,25 @@ const styles = StyleSheet.create({
     elevation: 6,
     borderWidth: 0.5,
     borderColor: 'rgba(0, 0, 0, 0.08)',
-    maxWidth: 90,
+    minWidth: 80,
+    maxWidth: 100,
     transform: [{ scale: 1 }],
   },
   themeTitleContainerNight: {
     borderColor: 'rgba(255, 255, 255, 0.12)',
     shadowOpacity: 0.4,
     shadowColor: '#000',
+  },
+  themeTitleContainerSelected: {
+    borderWidth: 2.5,
+    borderColor: '#007AFF',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    transform: [{ scale: 1.02 }],
+  },
+  themeTitleContainerSelectedNight: {
+    borderColor: '#81b0ff',
   },
   themeSectionTitle: {
     fontSize: 11,
@@ -2338,33 +3327,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    gap: 15,
+    gap: 12,
   },
   backgroundOption: {
-    width: 100,
-    marginBottom: 15,
+    width: 75,
+    marginBottom: 12,
     alignItems: 'center',
-    minWidth: 100,
-    maxWidth: 100,
+    minWidth: 75,
+    maxWidth: 75,
   },
   backgroundOptionSelected: {
     transform: [{ scale: 1.05 }],
   },
   backgroundPreview: {
-    width: 100,
-    height: 140,
-    borderRadius: 12,
+    width: 75,
+    height: 100,
+    borderRadius: 10,
     overflow: 'hidden',
     borderWidth: 3,
     borderColor: 'transparent',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 3,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
     position: 'relative',
   },
   backgroundLottiePreview: {
@@ -2395,16 +3384,214 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   backgroundOptionLabel: {
-    marginTop: 8,
-    fontSize: 12,
+    marginTop: 6,
+    fontSize: 11,
     fontWeight: '500',
     color: '#000000',
     textAlign: 'center',
-    width: 100,
+    width: 75,
     flexWrap: 'wrap',
   },
   backgroundOptionLabelNight: {
     color: '#ffffff',
+  },
+  quickSayDropdown: {
+    maxHeight: 400,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: 16,
+    marginTop: 8,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    overflow: 'hidden',
+  },
+  quickSayDropdownNight: {
+    backgroundColor: 'rgba(30, 30, 30, 0.98)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    shadowOpacity: 0.3,
+  },
+  quickSayContent: {
+    paddingVertical: 4,
+    paddingBottom: 20, // Minimal padding for keyboard space when needed
+  },
+  quickSayContentNoItems: {
+    paddingBottom: 10, // Even less padding when no saved sayings
+  },
+  savedSayingsContainer: {
+    marginBottom: 12,
+  },
+  sayingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+    borderRadius: 10,
+    padding: 8,
+    paddingVertical: 10,
+    marginBottom: 6,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  sayingCardNight: {
+    backgroundColor: 'rgba(50, 50, 50, 1)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  sayingCardContent: {
+    flex: 1,
+    marginRight: 6,
+  },
+  sayingPreview: {
+    fontSize: 13,
+    color: '#1a1a1a',
+    fontWeight: '500',
+    marginBottom: 2,
+    lineHeight: 16,
+  },
+  sayingPreviewNight: {
+    color: '#f0f0f0',
+  },
+  sayingLength: {
+    fontSize: 10,
+    color: '#666',
+    fontWeight: '400',
+  },
+  sayingLengthNight: {
+    color: '#aaa',
+  },
+  deleteSayingButton: {
+    padding: 2,
+  },
+  addSayingContainer: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    paddingTop: 16,
+  },
+  addSayingTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 10,
+  },
+  addSayingTitleNight: {
+    color: '#f0f0f0',
+  },
+  addSayingInputContainer: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  addSayingInput: {
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.12)',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 15,
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+    minHeight: 60,
+    textAlignVertical: 'top',
+    color: '#1a1a1a',
+  },
+  addSayingInputNight: {
+    backgroundColor: 'rgba(50, 50, 50, 1)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    color: '#f0f0f0',
+  },
+  addSayingInputLimit: {
+    borderColor: '#ff4444',
+    borderWidth: 2,
+  },
+  addSayingCharCount: {
+    position: 'absolute',
+    bottom: 8,
+    right: 12,
+    fontSize: 11,
+    color: '#666',
+  },
+  addSayingCharCountNight: {
+    color: '#aaa',
+  },
+  addSayingCharCountLimit: {
+    color: '#ff4444',
+    fontWeight: 'bold',
+  },
+  saveSayingButton: {
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  saveSayingButtonDisabled: {
+    opacity: 0.5,
+  },
+  saveSayingButtonNight: {
+    // Additional night mode styling if needed
+  },
+  saveSayingButtonGradient: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveSayingButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  colorPickerContainer: {
+    marginBottom: 10,
+  },
+  colorPickerLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 10,
+  },
+  colorPickerLabelNight: {
+    color: '#ffffff',
+  },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    gap: 10,
+  },
+  colorSwatch: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  colorSwatchSelected: {
+    borderWidth: 3,
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+    transform: [{ scale: 1.1 }],
   },
 });
 

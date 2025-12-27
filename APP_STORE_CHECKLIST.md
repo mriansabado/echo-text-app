@@ -13,7 +13,7 @@
 
 ### Basic Information
 - **App Name:** PocketSay
-- **Bundle ID:** com.iandev808.fontastic (consider updating to com.iandev808.pocketsay)
+- **Bundle ID:** com.iandev808.pocketsay
 - **Version:** 1.0.0
 
 ### App Information (Required)
