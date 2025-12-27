@@ -1909,7 +1909,7 @@ const HomeScreen = ({ navigation }) => {
                         styles.settingsSectionTitle,
                         isNightMode && styles.settingsSectionTitleNight
                       ]}>
-                        Backgrounds
+                        Animated Background
                       </Text>
                       <View style={styles.backgroundGrid}>
                         {Object.entries(backgroundConfigs).map(([key, config]) => (
@@ -2016,7 +2016,7 @@ const HomeScreen = ({ navigation }) => {
                         styles.settingsSectionTitle,
                         isNightMode && styles.settingsSectionTitleNight
                       ]}>
-                        Custom Colors
+                        Background
                       </Text>
                       
                       {/* Tab Buttons */}
@@ -2039,7 +2039,7 @@ const HomeScreen = ({ navigation }) => {
                               customColorTab === 'day' && isNightMode && styles.themeTitleContainerSelectedNight
                             ]}
                           >
-                            <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Day Mode</Text>
+                            <Text numberOfLines={1} style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Day Mode</Text>
                           </LinearGradient>
                         </TouchableOpacity>
                         <TouchableOpacity 
@@ -2057,21 +2057,22 @@ const HomeScreen = ({ navigation }) => {
                               styles.themeTitleContainer,
                               isNightMode && styles.themeTitleContainerNight,
                               customColorTab === 'night' && styles.themeTitleContainerSelected,
-                              customColorTab === 'night' && isNightMode && styles.themeTitleContainerSelectedNight
+                              customColorTab === 'night' && isNightMode && styles.themeTitleContainerSelectedNight,
+                              { paddingHorizontal: 24, minWidth: 130 }
                             ]}
                           >
-                            <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Night Mode</Text>
+                            <Text numberOfLines={1} style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Night Mode</Text>
                           </LinearGradient>
                         </TouchableOpacity>
                       </View>
                       
-                      {/* Day Mode Color Picker - 14 distinct colors */}
+                      {/* Day Mode Color Picker - 8 primary colors */}
                       {customColorTab === 'day' && (
                         <View style={styles.colorPickerContainer}>
                           <View style={styles.colorGrid}>
                             {[
-                              '#f7e5e7', '#E8F4F8', '#FFF5E1', '#FFE5E5', '#E0F6FF', '#FFE4B5', '#F0E68C',
-                              '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#FF8800', '#00FFFF'
+                              '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+                              '#FFFF00', '#00FFFF', '#FF00FF', '#000000'
                             ].map((color, index) => (
                               <TouchableOpacity
                                 key={index}
@@ -2095,13 +2096,13 @@ const HomeScreen = ({ navigation }) => {
                         </View>
                       )}
                       
-                      {/* Night Mode Color Picker - 14 distinct dark colors */}
+                      {/* Night Mode Color Picker - 8 primary colors */}
                       {customColorTab === 'night' && (
                         <View style={styles.colorPickerContainer}>
                           <View style={styles.colorGrid}>
                             {[
-                              '#1e3a8a', '#1a1a2e', '#16213e', '#0f3460', '#2d0047', '#1a0033', '#0a0014',
-                              '#8B0000', '#006400', '#00008B', '#800080', '#001F3F', '#2d5016', '#000000'
+                              '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+                              '#FFFF00', '#00FFFF', '#FF00FF', '#000000'
                             ].map((color, index) => (
                               <TouchableOpacity
                                 key={index}
@@ -2132,7 +2133,7 @@ const HomeScreen = ({ navigation }) => {
                         styles.settingsSectionTitle,
                         isNightMode && styles.settingsSectionTitleNight
                       ]}>
-                        Text Color
+                        Text
                       </Text>
                       
                       {/* Tab Buttons */}
@@ -2155,7 +2156,7 @@ const HomeScreen = ({ navigation }) => {
                               textColorTab === 'day' && isNightMode && styles.themeTitleContainerSelectedNight
                             ]}
                           >
-                            <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Day Mode</Text>
+                            <Text numberOfLines={1} style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Day Mode</Text>
                           </LinearGradient>
                         </TouchableOpacity>
                         <TouchableOpacity 
@@ -2173,21 +2174,22 @@ const HomeScreen = ({ navigation }) => {
                               styles.themeTitleContainer,
                               isNightMode && styles.themeTitleContainerNight,
                               textColorTab === 'night' && styles.themeTitleContainerSelected,
-                              textColorTab === 'night' && isNightMode && styles.themeTitleContainerSelectedNight
+                              textColorTab === 'night' && isNightMode && styles.themeTitleContainerSelectedNight,
+                              { paddingHorizontal: 24, minWidth: 130 }
                             ]}
                           >
-                            <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Night Mode</Text>
+                            <Text numberOfLines={1} style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Night Mode</Text>
                           </LinearGradient>
                         </TouchableOpacity>
                       </View>
                       
-                      {/* Day Mode Text Color Picker - 14 colors */}
+                      {/* Day Mode Text Color Picker - 8 primary colors */}
                       {textColorTab === 'day' && (
                         <View style={styles.colorPickerContainer}>
                           <View style={styles.colorGrid}>
                             {[
-                              '#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#808080', '#4A4A4A',
-                              '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FF8800'
+                              '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+                              '#FFFF00', '#00FFFF', '#FF00FF', '#000000'
                             ].map((color, index) => (
                               <TouchableOpacity
                                 key={index}
@@ -2210,13 +2212,13 @@ const HomeScreen = ({ navigation }) => {
                         </View>
                       )}
                       
-                      {/* Night Mode Text Color Picker - 14 colors */}
+                      {/* Night Mode Text Color Picker - 8 primary colors */}
                       {textColorTab === 'night' && (
                         <View style={styles.colorPickerContainer}>
                           <View style={styles.colorGrid}>
                             {[
-                              '#FFFFFF', '#E0E0E0', '#C0C0C0', '#A0A0A0', '#808080', '#D0D0D0', '#B5B5B5',
-                              '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'
+                              '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+                              '#FFFF00', '#00FFFF', '#FF00FF', '#000000'
                             ].map((color, index) => (
                               <TouchableOpacity
                                 key={index}
@@ -2678,12 +2680,11 @@ const PocketSayScreen = ({ route, navigation }) => {
           loop
           style={{
             position: 'absolute',
-            width: screenWidth + 100,
-            height: screenHeight + 150,
-            top: -100,
-            left: -50,
-            right: -50,
-            bottom: -50,
+            // Scale to fill landscape: zoom in to cover the wider landscape screen, focused on top (clouds)
+            width: screenWidth * 1.8, // Zoom in significantly to fill landscape width
+            height: screenWidth * 1.8 * 1.5, // Portrait aspect ratio (taller), scaled up
+            top: (screenHeight - screenWidth * 1.8 * 1.5) / 2 - screenHeight * 0.35, // Shift up more to focus on top portion (clouds)
+            left: -screenWidth * 0.4, // Center horizontally with overflow on sides
           }}
         />
       )}
