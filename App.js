@@ -18,6 +18,210 @@ const Stack = createStackNavigator();
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
+// Background configurations with day/night modes (shared between screens)
+const backgroundConfigs = {
+  mountains: {
+    name: 'Mountains',
+    type: 'lottie',
+    day: require('./assets/animations/Animation-Daytime.json'),
+    night: require('./assets/animations/Animation-Nighttime.json'),
+    previewColor: '#E8F4F8',
+  },
+  tropical: {
+    name: 'Tropical',
+    type: 'animated-gradient',
+    day: { 
+      colorSets: [
+        ['#40E0D0', '#FF6B6B', '#7FCDBB'], // Turquoise, Coral, Palm Green
+        ['#FF6B6B', '#7FCDBB', '#F4D03F'], // Coral, Palm Green, Sandy Beige
+        ['#7FCDBB', '#F4D03F', '#40E0D0'], // Palm Green, Sandy Beige, Turquoise
+        ['#F4D03F', '#40E0D0', '#FF6B6B'], // Sandy Beige, Turquoise, Coral
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    night: { 
+      colorSets: [
+        ['#0A4D68', '#8B3A3A', '#2D5016'], // Deep Ocean, Dark Coral, Deep Forest
+        ['#8B3A3A', '#2D5016', '#6B4423'], // Dark Coral, Deep Forest, Dark Sand
+        ['#2D5016', '#6B4423', '#0A4D68'], // Deep Forest, Dark Sand, Deep Ocean
+        ['#6B4423', '#0A4D68', '#8B3A3A'], // Dark Sand, Deep Ocean, Dark Coral
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    previewColor: '#40E0D0',
+  },
+  galaxy: {
+    name: 'Galaxy',
+    type: 'animated-gradient',
+    day: { 
+      colorSets: [
+        ['#1a0033', '#4a148c', '#7b1fa2'], // Deep Purple, Violet, Magenta
+        ['#4a148c', '#7b1fa2', '#e91e63'], // Violet, Magenta, Pink
+        ['#7b1fa2', '#e91e63', '#3f51b5'], // Magenta, Pink, Indigo
+        ['#e91e63', '#3f51b5', '#1a0033'], // Pink, Indigo, Deep Purple
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    night: { 
+      colorSets: [
+        ['#0a0014', '#1a0033', '#2d0047'], // Deepest Space, Deep Purple, Dark Violet
+        ['#1a0033', '#2d0047', '#4a148c'], // Deep Purple, Dark Violet, Violet
+        ['#2d0047', '#4a148c', '#1a0033'], // Dark Violet, Violet, Deep Purple
+        ['#4a148c', '#1a0033', '#0a0014'], // Violet, Deep Purple, Deepest Space
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    previewColor: '#4a148c',
+  },
+  rainbow: {
+    name: 'Rainbow',
+    type: 'animated-gradient',
+    day: { 
+      colorSets: [
+        ['#FF0000', '#FF8800', '#FFD700', '#8B00FF'], // Red, Orange, Gold, Violet
+        ['#FF8800', '#FFD700', '#8B00FF', '#FF0000'], // Orange, Gold, Violet, Red
+        ['#FFD700', '#8B00FF', '#FF0000', '#FF8800'], // Gold, Violet, Red, Orange
+        ['#8B00FF', '#FF0000', '#FF8800', '#FFD700'], // Violet, Red, Orange, Gold
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    night: { 
+      colorSets: [
+        ['#CC0000', '#CC6600', '#CCAA00', '#6B00CC'], // Darker Red, Orange, Gold, Violet
+        ['#CC6600', '#CCAA00', '#6B00CC', '#CC0000'], // Darker Orange, Gold, Violet, Red
+        ['#CCAA00', '#6B00CC', '#CC0000', '#CC6600'], // Darker Gold, Violet, Red, Orange
+        ['#6B00CC', '#CC0000', '#CC6600', '#CCAA00'], // Darker Violet, Red, Orange, Gold
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    previewColor: '#FF8800',
+  },
+  sunset: {
+    name: 'Sunset',
+    type: 'animated-gradient',
+    day: { 
+      colorSets: [
+        ['#ef4444', '#f97316', '#fbbf24', '#3b82f6'], // Red, Orange, Yellow, Blue
+        ['#f97316', '#fbbf24', '#3b82f6', '#ef4444'], // Orange, Yellow, Blue, Red
+        ['#fbbf24', '#3b82f6', '#ef4444', '#f97316'], // Yellow, Blue, Red, Orange
+        ['#3b82f6', '#ef4444', '#f97316', '#fbbf24'], // Blue, Red, Orange, Yellow
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    night: { 
+      colorSets: [
+        ['#dc2626', '#ea580c', '#f59e0b', '#2563eb'], // Darker Red, Orange, Yellow, Blue
+        ['#ea580c', '#f59e0b', '#2563eb', '#dc2626'], // Darker Orange, Yellow, Blue, Red
+        ['#f59e0b', '#2563eb', '#dc2626', '#ea580c'], // Darker Yellow, Blue, Red, Orange
+        ['#2563eb', '#dc2626', '#ea580c', '#f59e0b'], // Darker Blue, Red, Orange, Yellow
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    previewColor: '#f97316',
+  },
+  retro: {
+    name: '80s Pop',
+    type: 'animated-gradient',
+    day: { 
+      colorSets: [
+        ['#FF00FF', '#00FFFF', '#FF00FF', '#FFFF00'], // Hot Pink, Cyan, Hot Pink, Neon Yellow
+        ['#00FFFF', '#FF00FF', '#FFFF00', '#FF00FF'], // Cyan, Hot Pink, Neon Yellow, Hot Pink
+        ['#FF00FF', '#FFFF00', '#FF00FF', '#00FFFF'], // Hot Pink, Neon Yellow, Hot Pink, Cyan
+        ['#FFFF00', '#FF00FF', '#00FFFF', '#FF00FF'], // Neon Yellow, Hot Pink, Cyan, Hot Pink
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    night: { 
+      colorSets: [
+        ['#CC00CC', '#00CCCC', '#CC00CC', '#CCCC00'], // Darker Hot Pink, Darker Cyan, Darker Hot Pink, Darker Yellow
+        ['#00CCCC', '#CC00CC', '#CCCC00', '#CC00CC'], // Darker Cyan, Darker Hot Pink, Darker Yellow, Darker Hot Pink
+        ['#CC00CC', '#CCCC00', '#CC00CC', '#00CCCC'], // Darker Hot Pink, Darker Yellow, Darker Hot Pink, Darker Cyan
+        ['#CCCC00', '#CC00CC', '#00CCCC', '#CC00CC'], // Darker Yellow, Darker Hot Pink, Darker Cyan, Darker Hot Pink
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    previewColor: '#FF00FF',
+  },
+  forest: {
+    name: 'Forest',
+    type: 'animated-gradient',
+    day: { 
+      colorSets: [
+        ['#228B22', '#8B7355', '#6B8E23', '#9ACD32'], // Forest Green, Tan, Olive, Yellow Green
+        ['#8B7355', '#6B8E23', '#9ACD32', '#228B22'], // Tan, Olive, Yellow Green, Forest Green
+        ['#6B8E23', '#9ACD32', '#228B22', '#8B7355'], // Olive, Yellow Green, Forest Green, Tan
+        ['#9ACD32', '#228B22', '#8B7355', '#6B8E23'], // Yellow Green, Forest Green, Tan, Olive
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    night: { 
+      colorSets: [
+        ['#0F5132', '#3D2817', '#2F4F2F', '#4A5D23'], // Dark Forest, Dark Brown, Dark Olive, Dark Moss
+        ['#3D2817', '#2F4F2F', '#4A5D23', '#0F5132'], // Dark Brown, Dark Olive, Dark Moss, Dark Forest
+        ['#2F4F2F', '#4A5D23', '#0F5132', '#3D2817'], // Dark Olive, Dark Moss, Dark Forest, Dark Brown
+        ['#4A5D23', '#0F5132', '#3D2817', '#2F4F2F'], // Dark Moss, Dark Forest, Dark Brown, Dark Olive
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    previewColor: '#228B22',
+  },
+  blossom: {
+    name: 'Blossom',
+    type: 'animated-gradient',
+    day: { 
+      colorSets: [
+        ['#FFB6C1', '#FFC0CB', '#FF69B4', '#FFE4E1'], // Light Pink, Pink, Hot Pink, Misty Rose
+        ['#FFC0CB', '#FF69B4', '#FFE4E1', '#FFB6C1'], // Pink, Hot Pink, Misty Rose, Light Pink
+        ['#FF69B4', '#FFE4E1', '#FFB6C1', '#FFC0CB'], // Hot Pink, Misty Rose, Light Pink, Pink
+        ['#FFE4E1', '#FFB6C1', '#FFC0CB', '#FF69B4'], // Misty Rose, Light Pink, Pink, Hot Pink
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    night: { 
+      colorSets: [
+        ['#8B4C6B', '#8B4C7A', '#8B4789', '#8B5A7A'], // Dark Pink, Dark Rose, Dark Magenta, Dark Mauve
+        ['#8B4C7A', '#8B4789', '#8B5A7A', '#8B4C6B'], // Dark Rose, Dark Magenta, Dark Mauve, Dark Pink
+        ['#8B4789', '#8B5A7A', '#8B4C6B', '#8B4C7A'], // Dark Magenta, Dark Mauve, Dark Pink, Dark Rose
+        ['#8B5A7A', '#8B4C6B', '#8B4C7A', '#8B4789'], // Dark Mauve, Dark Pink, Dark Rose, Dark Magenta
+      ],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 }
+    },
+    previewColor: '#FFB6C1',
+  },
+};
+
+// Helper function to interpolate between hex colors (shared between screens)
+const interpolateColor = (color1, color2, factor) => {
+  const hex1 = color1.replace('#', '');
+  const hex2 = color2.replace('#', '');
+  const r1 = parseInt(hex1.slice(0, 2), 16);
+  const g1 = parseInt(hex1.slice(2, 4), 16);
+  const b1 = parseInt(hex1.slice(4, 6), 16);
+  const r2 = parseInt(hex2.slice(0, 2), 16);
+  const g2 = parseInt(hex2.slice(2, 4), 16);
+  const b2 = parseInt(hex2.slice(4, 6), 16);
+  
+  const r = Math.round(r1 + (r2 - r1) * factor);
+  const g = Math.round(g1 + (g2 - g1) * factor);
+  const b = Math.round(b1 + (b2 - b1) * factor);
+  
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+};
+
 const PocketSayApp = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
@@ -86,6 +290,9 @@ const HomeScreen = ({ navigation }) => {
   const [customDayColor, setCustomDayColor] = useState('#f7e5e7');
   const [customNightColor, setCustomNightColor] = useState('#1e3a8a');
   const [customColorTab, setCustomColorTab] = useState('day'); // 'day' or 'night'
+  const [textDayColor, setTextDayColor] = useState('#000000');
+  const [textNightColor, setTextNightColor] = useState('#ffffff');
+  const [textColorTab, setTextColorTab] = useState('day'); // 'day' or 'night'
   const [gradientColors, setGradientColors] = useState(['#E8F4F8', '#F0E6F5']);
   const [buttonGradientColors, setButtonGradientColors] = useState(['#4A90E2', '#357ABD']);
   const fadeOpacity = React.useRef(new Animated.Value(0)).current;
@@ -202,24 +409,6 @@ const HomeScreen = ({ navigation }) => {
     setText(saying);
     setShowQuickSay(false);
     Keyboard.dismiss();
-  };
-
-  // Helper function to interpolate between hex colors
-  const interpolateColor = (color1, color2, factor) => {
-    const hex1 = color1.replace('#', '');
-    const hex2 = color2.replace('#', '');
-    const r1 = parseInt(hex1.slice(0, 2), 16);
-    const g1 = parseInt(hex1.slice(2, 4), 16);
-    const b1 = parseInt(hex1.slice(4, 6), 16);
-    const r2 = parseInt(hex2.slice(0, 2), 16);
-    const g2 = parseInt(hex2.slice(2, 4), 16);
-    const b2 = parseInt(hex2.slice(4, 6), 16);
-    
-    const r = Math.round(r1 + (r2 - r1) * factor);
-    const g = Math.round(g1 + (g2 - g1) * factor);
-    const b = Math.round(b1 + (b2 - b1) * factor);
-    
-    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
   };
 
   // Animate gradient background for theme button
@@ -376,192 +565,6 @@ const HomeScreen = ({ navigation }) => {
         }
       });
     });
-  };
-
-  // Background configurations with day/night modes
-  const backgroundConfigs = {
-    mountains: {
-      name: 'Mountains',
-      type: 'lottie',
-      day: require('./assets/animations/Animation-Daytime.json'),
-      night: require('./assets/animations/Animation-Nighttime.json'),
-      previewColor: '#E8F4F8',
-    },
-    tropical: {
-      name: 'Tropical',
-      type: 'animated-gradient',
-      day: { 
-        colorSets: [
-          ['#40E0D0', '#FF6B6B', '#7FCDBB'], // Turquoise, Coral, Palm Green
-          ['#FF6B6B', '#7FCDBB', '#F4D03F'], // Coral, Palm Green, Sandy Beige
-          ['#7FCDBB', '#F4D03F', '#40E0D0'], // Palm Green, Sandy Beige, Turquoise
-          ['#F4D03F', '#40E0D0', '#FF6B6B'], // Sandy Beige, Turquoise, Coral
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      night: { 
-        colorSets: [
-          ['#0A4D68', '#8B3A3A', '#2D5016'], // Deep Ocean, Dark Coral, Deep Forest
-          ['#8B3A3A', '#2D5016', '#6B4423'], // Dark Coral, Deep Forest, Dark Sand
-          ['#2D5016', '#6B4423', '#0A4D68'], // Deep Forest, Dark Sand, Deep Ocean
-          ['#6B4423', '#0A4D68', '#8B3A3A'], // Dark Sand, Deep Ocean, Dark Coral
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      previewColor: '#40E0D0',
-    },
-    galaxy: {
-      name: 'Galaxy',
-      type: 'animated-gradient',
-      day: { 
-        colorSets: [
-          ['#1a0033', '#4a148c', '#7b1fa2'], // Deep Purple, Violet, Magenta
-          ['#4a148c', '#7b1fa2', '#e91e63'], // Violet, Magenta, Pink
-          ['#7b1fa2', '#e91e63', '#3f51b5'], // Magenta, Pink, Indigo
-          ['#e91e63', '#3f51b5', '#1a0033'], // Pink, Indigo, Deep Purple
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      night: { 
-        colorSets: [
-          ['#0a0014', '#1a0033', '#2d0047'], // Deepest Space, Deep Purple, Dark Violet
-          ['#1a0033', '#2d0047', '#4a148c'], // Deep Purple, Dark Violet, Violet
-          ['#2d0047', '#4a148c', '#1a0033'], // Dark Violet, Violet, Deep Purple
-          ['#4a148c', '#1a0033', '#0a0014'], // Violet, Deep Purple, Deepest Space
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      previewColor: '#4a148c',
-    },
-    rainbow: {
-      name: 'Rainbow',
-      type: 'animated-gradient',
-      day: { 
-        colorSets: [
-          ['#FF0000', '#FF8800', '#FFD700', '#8B00FF'], // Red, Orange, Gold, Violet
-          ['#FF8800', '#FFD700', '#8B00FF', '#FF0000'], // Orange, Gold, Violet, Red
-          ['#FFD700', '#8B00FF', '#FF0000', '#FF8800'], // Gold, Violet, Red, Orange
-          ['#8B00FF', '#FF0000', '#FF8800', '#FFD700'], // Violet, Red, Orange, Gold
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      night: { 
-        colorSets: [
-          ['#CC0000', '#CC6600', '#CCAA00', '#6B00CC'], // Darker Red, Orange, Gold, Violet
-          ['#CC6600', '#CCAA00', '#6B00CC', '#CC0000'], // Darker Orange, Gold, Violet, Red
-          ['#CCAA00', '#6B00CC', '#CC0000', '#CC6600'], // Darker Gold, Violet, Red, Orange
-          ['#6B00CC', '#CC0000', '#CC6600', '#CCAA00'], // Darker Violet, Red, Orange, Gold
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      previewColor: '#FF8800',
-    },
-    sunset: {
-      name: 'Sunset',
-      type: 'animated-gradient',
-      day: { 
-        colorSets: [
-          ['#ef4444', '#f97316', '#fbbf24', '#3b82f6'], // Red, Orange, Yellow, Blue
-          ['#f97316', '#fbbf24', '#3b82f6', '#ef4444'], // Orange, Yellow, Blue, Red
-          ['#fbbf24', '#3b82f6', '#ef4444', '#f97316'], // Yellow, Blue, Red, Orange
-          ['#3b82f6', '#ef4444', '#f97316', '#fbbf24'], // Blue, Red, Orange, Yellow
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      night: { 
-        colorSets: [
-          ['#dc2626', '#ea580c', '#f59e0b', '#2563eb'], // Darker Red, Orange, Yellow, Blue
-          ['#ea580c', '#f59e0b', '#2563eb', '#dc2626'], // Darker Orange, Yellow, Blue, Red
-          ['#f59e0b', '#2563eb', '#dc2626', '#ea580c'], // Darker Yellow, Blue, Red, Orange
-          ['#2563eb', '#dc2626', '#ea580c', '#f59e0b'], // Darker Blue, Red, Orange, Yellow
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      previewColor: '#f97316',
-    },
-    retro: {
-      name: '80s Pop',
-      type: 'animated-gradient',
-      day: { 
-        colorSets: [
-          ['#FF00FF', '#00FFFF', '#FF00FF', '#FFFF00'], // Hot Pink, Cyan, Hot Pink, Neon Yellow
-          ['#00FFFF', '#FF00FF', '#FFFF00', '#FF00FF'], // Cyan, Hot Pink, Neon Yellow, Hot Pink
-          ['#FF00FF', '#FFFF00', '#FF00FF', '#00FFFF'], // Hot Pink, Neon Yellow, Hot Pink, Cyan
-          ['#FFFF00', '#FF00FF', '#00FFFF', '#FF00FF'], // Neon Yellow, Hot Pink, Cyan, Hot Pink
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      night: { 
-        colorSets: [
-          ['#CC00CC', '#00CCCC', '#CC00CC', '#CCCC00'], // Darker Hot Pink, Darker Cyan, Darker Hot Pink, Darker Yellow
-          ['#00CCCC', '#CC00CC', '#CCCC00', '#CC00CC'], // Darker Cyan, Darker Hot Pink, Darker Yellow, Darker Hot Pink
-          ['#CC00CC', '#CCCC00', '#CC00CC', '#00CCCC'], // Darker Hot Pink, Darker Yellow, Darker Hot Pink, Darker Cyan
-          ['#CCCC00', '#CC00CC', '#00CCCC', '#CC00CC'], // Darker Yellow, Darker Hot Pink, Darker Cyan, Darker Hot Pink
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      previewColor: '#FF00FF',
-    },
-    forest: {
-      name: 'Forest',
-      type: 'animated-gradient',
-      day: { 
-        colorSets: [
-          ['#228B22', '#8B7355', '#6B8E23', '#9ACD32'], // Forest Green, Tan, Olive, Yellow Green
-          ['#8B7355', '#6B8E23', '#9ACD32', '#228B22'], // Tan, Olive, Yellow Green, Forest Green
-          ['#6B8E23', '#9ACD32', '#228B22', '#8B7355'], // Olive, Yellow Green, Forest Green, Tan
-          ['#9ACD32', '#228B22', '#8B7355', '#6B8E23'], // Yellow Green, Forest Green, Tan, Olive
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      night: { 
-        colorSets: [
-          ['#0F5132', '#3D2817', '#2F4F2F', '#4A5D23'], // Dark Forest, Dark Brown, Dark Olive, Dark Moss
-          ['#3D2817', '#2F4F2F', '#4A5D23', '#0F5132'], // Dark Brown, Dark Olive, Dark Moss, Dark Forest
-          ['#2F4F2F', '#4A5D23', '#0F5132', '#3D2817'], // Dark Olive, Dark Moss, Dark Forest, Dark Brown
-          ['#4A5D23', '#0F5132', '#3D2817', '#2F4F2F'], // Dark Moss, Dark Forest, Dark Brown, Dark Olive
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      previewColor: '#228B22',
-    },
-    blossom: {
-      name: 'Blossom',
-      type: 'animated-gradient',
-      day: { 
-        colorSets: [
-          ['#FFB6C1', '#FFC0CB', '#FF69B4', '#FFE4E1'], // Light Pink, Pink, Hot Pink, Misty Rose
-          ['#FFC0CB', '#FF69B4', '#FFE4E1', '#FFB6C1'], // Pink, Hot Pink, Misty Rose, Light Pink
-          ['#FF69B4', '#FFE4E1', '#FFB6C1', '#FFC0CB'], // Hot Pink, Misty Rose, Light Pink, Pink
-          ['#FFE4E1', '#FFB6C1', '#FFC0CB', '#FF69B4'], // Misty Rose, Light Pink, Pink, Hot Pink
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      night: { 
-        colorSets: [
-          ['#8B4C6B', '#8B4C7A', '#8B4789', '#8B5A7A'], // Dark Pink, Dark Rose, Dark Magenta, Dark Mauve
-          ['#8B4C7A', '#8B4789', '#8B5A7A', '#8B4C6B'], // Dark Rose, Dark Magenta, Dark Mauve, Dark Pink
-          ['#8B4789', '#8B5A7A', '#8B4C6B', '#8B4C7A'], // Dark Magenta, Dark Mauve, Dark Pink, Dark Rose
-          ['#8B5A7A', '#8B4C6B', '#8B4C7A', '#8B4789'], // Dark Mauve, Dark Pink, Dark Rose, Dark Magenta
-        ],
-        start: { x: 0, y: 0 },
-        end: { x: 1, y: 1 }
-      },
-      previewColor: '#FFB6C1',
-    },
   };
 
   // Animate tropical gradient background
@@ -1231,7 +1234,18 @@ const HomeScreen = ({ navigation }) => {
         console.log('Orientation lock failed (continuing):', e);
       }
     } finally {
-      navigation.navigate('PocketSayResults', { text, selectedAnimation, backgroundColor: resultsBackgroundColor, fontStyle: selectedFontStyle, backgroundType: selectedBackground });
+      navigation.navigate('PocketSayResults', { 
+        text, 
+        selectedAnimation, 
+        backgroundColor: resultsBackgroundColor, 
+        fontStyle: selectedFontStyle, 
+        backgroundType: selectedBackground,
+        isNightMode: isNightMode,
+        customDayColor: customDayColor,
+        customNightColor: customNightColor,
+        textDayColor: textDayColor,
+        textNightColor: textNightColor
+      });
     }
   };
 
@@ -2051,15 +2065,13 @@ const HomeScreen = ({ navigation }) => {
                         </TouchableOpacity>
                       </View>
                       
-                      {/* Day Mode Color Picker */}
+                      {/* Day Mode Color Picker - 14 distinct colors */}
                       {customColorTab === 'day' && (
                         <View style={styles.colorPickerContainer}>
                           <View style={styles.colorGrid}>
                             {[
-                              '#f7e5e7', '#E8F4F8', '#FFF5E1', '#FFE5E5', '#E0F6FF',
-                              '#FFE4B5', '#F0E68C', '#DDA0DD', '#98D8C8', '#F5DEB3',
-                              '#FFB6C1', '#B0E0E6', '#FFDAB9', '#E6E6FA', '#F0FFF0',
-                              '#FFEFD5', '#FFF8DC', '#F5F5DC', '#FFE4E1', '#E0FFFF'
+                              '#f7e5e7', '#E8F4F8', '#FFF5E1', '#FFE5E5', '#E0F6FF', '#FFE4B5', '#F0E68C',
+                              '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#FF8800', '#00FFFF'
                             ].map((color, index) => (
                               <TouchableOpacity
                                 key={index}
@@ -2083,15 +2095,13 @@ const HomeScreen = ({ navigation }) => {
                         </View>
                       )}
                       
-                      {/* Night Mode Color Picker */}
+                      {/* Night Mode Color Picker - 14 distinct dark colors */}
                       {customColorTab === 'night' && (
                         <View style={styles.colorPickerContainer}>
                           <View style={styles.colorGrid}>
                             {[
-                              '#1e3a8a', '#1a1a2e', '#16213e', '#0f3460', '#2d0047',
-                              '#1a0033', '#0a0014', '#001F3F', '#003366', '#004080',
-                              '#2d5016', '#4a3728', '#6b4423', '#8B3A3A', '#0A4D68',
-                              '#1a1a1a', '#2a2a2a', '#3a3a3a', '#4a4a4a', '#000000'
+                              '#1e3a8a', '#1a1a2e', '#16213e', '#0f3460', '#2d0047', '#1a0033', '#0a0014',
+                              '#8B0000', '#006400', '#00008B', '#800080', '#001F3F', '#2d5016', '#000000'
                             ].map((color, index) => (
                               <TouchableOpacity
                                 key={index}
@@ -2116,6 +2126,120 @@ const HomeScreen = ({ navigation }) => {
                       )}
                     </View>
                     
+                    {/* Text Color Picker Section */}
+                    <View style={styles.settingsSection}>
+                      <Text style={[
+                        styles.settingsSectionTitle,
+                        isNightMode && styles.settingsSectionTitleNight
+                      ]}>
+                        Text Color
+                      </Text>
+                      
+                      {/* Tab Buttons */}
+                      <View style={styles.themeButtonRow}>
+                        <TouchableOpacity 
+                          onPress={() => {
+                            setTextColorTab('day');
+                          }}
+                          activeOpacity={0.8}
+                          style={styles.themeButtonWrapper}
+                        >
+                          <LinearGradient
+                            colors={isNightMode ? ['#2a2a2a', '#1a1a1a'] : gradientColors}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={[
+                              styles.themeTitleContainer,
+                              isNightMode && styles.themeTitleContainerNight,
+                              textColorTab === 'day' && styles.themeTitleContainerSelected,
+                              textColorTab === 'day' && isNightMode && styles.themeTitleContainerSelectedNight
+                            ]}
+                          >
+                            <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Day Mode</Text>
+                          </LinearGradient>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          onPress={() => {
+                            setTextColorTab('night');
+                          }}
+                          activeOpacity={0.8}
+                          style={styles.themeButtonWrapper}
+                        >
+                          <LinearGradient
+                            colors={isNightMode ? ['#2a2a2a', '#1a1a1a'] : gradientColors}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={[
+                              styles.themeTitleContainer,
+                              isNightMode && styles.themeTitleContainerNight,
+                              textColorTab === 'night' && styles.themeTitleContainerSelected,
+                              textColorTab === 'night' && isNightMode && styles.themeTitleContainerSelectedNight
+                            ]}
+                          >
+                            <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Night Mode</Text>
+                          </LinearGradient>
+                        </TouchableOpacity>
+                      </View>
+                      
+                      {/* Day Mode Text Color Picker - 14 colors */}
+                      {textColorTab === 'day' && (
+                        <View style={styles.colorPickerContainer}>
+                          <View style={styles.colorGrid}>
+                            {[
+                              '#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#808080', '#4A4A4A',
+                              '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FF8800'
+                            ].map((color, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                onPress={() => {
+                                  setTextDayColor(color);
+                                }}
+                                style={[
+                                  styles.colorSwatch,
+                                  textDayColor === color && styles.colorSwatchSelected,
+                                  { backgroundColor: color },
+                                  textDayColor === color && { borderColor: isNightMode ? '#81b0ff' : '#007AFF' }
+                                ]}
+                              >
+                                {textDayColor === color && (
+                                  <Ionicons name="checkmark" size={16} color={isNightMode ? '#81b0ff' : '#007AFF'} />
+                                )}
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+                      
+                      {/* Night Mode Text Color Picker - 14 colors */}
+                      {textColorTab === 'night' && (
+                        <View style={styles.colorPickerContainer}>
+                          <View style={styles.colorGrid}>
+                            {[
+                              '#FFFFFF', '#E0E0E0', '#C0C0C0', '#A0A0A0', '#808080', '#D0D0D0', '#B5B5B5',
+                              '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'
+                            ].map((color, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                onPress={() => {
+                                  setTextNightColor(color);
+                                }}
+                                style={[
+                                  styles.colorSwatch,
+                                  textNightColor === color && styles.colorSwatchSelected,
+                                  { backgroundColor: color },
+                                  textNightColor === color && { borderColor: isNightMode ? '#81b0ff' : '#007AFF' }
+                                ]}
+                              >
+                                {textNightColor === color && (
+                                  <Ionicons name="checkmark" size={16} color={isNightMode ? '#81b0ff' : '#007AFF'} />
+                                )}
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                    
                     {/* Future customizations can be added here */}
                   </ScrollView>
                 </View>
@@ -2131,17 +2255,45 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const PocketSayScreen = ({ route, navigation }) => {
-  const { text, selectedAnimation, backgroundColor, fontStyle = 'default' } = route.params;
+  const { 
+    text, 
+    selectedAnimation, 
+    backgroundColor, 
+    fontStyle = 'default',
+    backgroundType = 'mountains',
+    isNightMode: initialNightMode = false,
+    customDayColor = '#f7e5e7',
+    customNightColor = '#1e3a8a',
+    textDayColor = '#000000',
+    textNightColor = '#ffffff'
+  } = route.params || {};
   const [sound, setSound] = useState();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const fadeOpacity = React.useRef(new Animated.Value(1)).current;
   const [winDims, setWinDims] = useState(Dimensions.get('window'));
   
-  // Determine initial night mode based on background color, then allow toggling
-  const [isNightMode, setIsNightMode] = useState(backgroundColor === '#1e3a8a');
+  // Use passed night mode or determine from background color
+  const [isNightMode, setIsNightMode] = useState(initialNightMode || backgroundColor === '#1e3a8a');
   // Store the original light mode color (default to '#f7e5e7' if we started in night mode)
   const originalLightColor = backgroundColor === '#1e3a8a' ? '#f7e5e7' : backgroundColor;
   const [currentBackgroundColor, setCurrentBackgroundColor] = useState(backgroundColor);
+  
+  // Animated gradient states
+  const tropicalAnim = React.useRef(new Animated.Value(0)).current;
+  const [tropicalColors, setTropicalColors] = useState(['#40E0D0', '#FF6B6B', '#7FCDBB']);
+  const galaxyAnim = React.useRef(new Animated.Value(0)).current;
+  const [galaxyColors, setGalaxyColors] = useState(['#1a0033', '#4a148c', '#7b1fa2']);
+  const rainbowAnim = React.useRef(new Animated.Value(0)).current;
+  const [rainbowColors, setRainbowColors] = useState(['#FF0000', '#FF8800', '#FFD700', '#8B00FF']);
+  const sunsetAnim = React.useRef(new Animated.Value(0)).current;
+  const [sunsetColors, setSunsetColors] = useState(['#ef4444', '#f97316', '#fbbf24', '#3b82f6']);
+  const retroAnim = React.useRef(new Animated.Value(0)).current;
+  const [retroColors, setRetroColors] = useState(['#FF00FF', '#00FFFF', '#FF00FF', '#FFFF00']);
+  const forestAnim = React.useRef(new Animated.Value(0)).current;
+  const [forestColors, setForestColors] = useState(['#228B22', '#8B7355', '#6B8E23', '#9ACD32']);
+  const blossomAnim = React.useRef(new Animated.Value(0)).current;
+  const [blossomColors, setBlossomColors] = useState(['#FFB6C1', '#FFC0CB', '#FF69B4', '#FFE4E1']);
+  const [starAnimations, setStarAnimations] = useState([]);
   
   // Drawing state
   const [isDrawingMode, setIsDrawingMode] = useState(false);
@@ -2246,23 +2398,50 @@ const PocketSayScreen = ({ route, navigation }) => {
     }
   };
 
+  // Lock to landscape when screen is focused and dismiss keyboard
+  useFocusEffect(
+    React.useCallback(() => {
+      const lockOrientation = async () => {
+        try {
+          // Dismiss keyboard first
+          Keyboard.dismiss();
+          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+          // Update dimensions after orientation change
+          setTimeout(() => {
+            setWinDims(Dimensions.get('window'));
+          }, 100);
+        } catch (e) {
+          if (__DEV__) {
+            console.log('Orientation lock failed:', e);
+          }
+        }
+      };
+      lockOrientation();
+      
+      // Do not unlock on blur to avoid a second flip; the caller handles locking back
+      return () => {};
+    }, [])
+  );
+
   useEffect(() => {
-    // Ensure the screen is in landscape; if already locked, this is a no-op
-    const lockAndUpdateDims = async () => {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-      // Update dimensions after orientation change
-      setTimeout(() => {
-        setWinDims(Dimensions.get('window'));
-      }, 100);
-    };
-    lockAndUpdateDims();
+    // Initialize gradient colors based on background type
+    if (backgroundConfigs[backgroundType] && backgroundConfigs[backgroundType].type === 'animated-gradient') {
+      const config = backgroundConfigs[backgroundType];
+      const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+      const initialColors = colorSets[0];
+      
+      if (backgroundType === 'tropical') setTropicalColors(initialColors);
+      else if (backgroundType === 'galaxy') setGalaxyColors(initialColors);
+      else if (backgroundType === 'rainbow') setRainbowColors(initialColors);
+      else if (backgroundType === 'sunset') setSunsetColors(initialColors);
+      else if (backgroundType === 'retro') setRetroColors(initialColors);
+      else if (backgroundType === 'forest') setForestColors(initialColors);
+      else if (backgroundType === 'blossom') setBlossomColors(initialColors);
+    }
     
     // Play display sound when the large text shows
     // playSound(require('./assets/sounds/display.mp3'));
-
-    // Do not unlock on unmount to avoid a second flip; the caller handles locking back
-    return () => {};
-  }, []);
+  }, [backgroundType, isNightMode]);
 
   useEffect(() => {
     // Fade in on mount for a smooth reveal
@@ -2281,6 +2460,97 @@ const PocketSayScreen = ({ route, navigation }) => {
     };
   }, []);
 
+  // Animate gradient backgrounds (simplified version - animate all active gradients)
+  useEffect(() => {
+    if (!backgroundConfigs[backgroundType] || backgroundConfigs[backgroundType].type !== 'animated-gradient') return;
+
+    const config = backgroundConfigs[backgroundType];
+    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
+    const animRef = backgroundType === 'tropical' ? tropicalAnim :
+                    backgroundType === 'galaxy' ? galaxyAnim :
+                    backgroundType === 'rainbow' ? rainbowAnim :
+                    backgroundType === 'sunset' ? sunsetAnim :
+                    backgroundType === 'retro' ? retroAnim :
+                    backgroundType === 'forest' ? forestAnim :
+                    blossomAnim;
+    const setColors = backgroundType === 'tropical' ? setTropicalColors :
+                      backgroundType === 'galaxy' ? setGalaxyColors :
+                      backgroundType === 'rainbow' ? setRainbowColors :
+                      backgroundType === 'sunset' ? setSunsetColors :
+                      backgroundType === 'retro' ? setRetroColors :
+                      backgroundType === 'forest' ? setForestColors :
+                      setBlossomColors;
+
+    const listener = animRef.addListener(({ value }) => {
+      const index = Math.floor(value * (colorSets.length - 1));
+      const nextIndex = Math.min(index + 1, colorSets.length - 1);
+      const progress = (value * (colorSets.length - 1)) - index;
+      
+      const interpolatedColors = colorSets[index].map((color, i) => 
+        interpolateColor(color, colorSets[nextIndex][i], progress)
+      );
+      setColors(interpolatedColors);
+    });
+
+    const startAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(animRef, {
+            toValue: 1,
+            duration: 8000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(animRef, {
+            toValue: 0,
+            duration: 8000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    startAnimation();
+    
+    return () => {
+      animRef.removeListener(listener);
+    };
+  }, [backgroundType, isNightMode]);
+
+  // Galaxy stars animation
+  useEffect(() => {
+    if (backgroundType !== 'galaxy') {
+      setStarAnimations([]);
+      return;
+    }
+
+    const stars = Array.from({ length: 50 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      animValue: new Animated.Value(Math.random()),
+    }));
+
+    setStarAnimations(stars);
+
+    stars.forEach((star) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(star.animValue, {
+            toValue: 1,
+            duration: 1000 + Math.random() * 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(star.animValue, {
+            toValue: 0.3,
+            duration: 1000 + Math.random() * 2000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    });
+  }, [backgroundType]);
+
   const calculateFontSize = (text) => {
     if (text.length <= 5) {
       return 100;
@@ -2291,7 +2561,8 @@ const PocketSayScreen = ({ route, navigation }) => {
 
   const toggleNightMode = (value) => {
     setIsNightMode(value);
-    setCurrentBackgroundColor(value ? '#1e3a8a' : originalLightColor);
+    // Background color is now handled by background rendering, but keep for compatibility
+    setCurrentBackgroundColor(value ? customNightColor : customDayColor);
   };
 
   // Drawing handlers
@@ -2392,45 +2663,161 @@ const PocketSayScreen = ({ route, navigation }) => {
     Love: require('./assets/animations/love.json'),
   };
 
+  // Ensure we have valid dimensions
+  const screenWidth = winDims.width || Dimensions.get('window').width;
+  const screenHeight = winDims.height || Dimensions.get('window').height;
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentBackgroundColor }]} edges={['left', 'right', 'top', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]} edges={['left', 'right', 'top', 'bottom']}>
       <StatusBar style="dark" />
-      <ScrollView 
-        contentContainerStyle={[
-          styles.scrollContent,
-          (() => {
-            if (!selectedAnimation) return null;
-            const hasText = !!(text && text.trim() !== '');
-            if (!hasText) return null; // theme-only uses centered overlay
-            const base = Math.floor(Math.min(winDims.width, winDims.height) * 0.4);
-            const width = Math.max(260, Math.min(base, 420));
-            return { paddingRight: width + 40 };
-          })()
-        ]}
-        showsVerticalScrollIndicator={false}
-        style={{ flex: 1 }}
-      >
-        <Text 
-          numberOfLines={5} 
-          style={[
-            styles.bigText, 
-            { 
-              color: isNightMode ? '#ffffff' : '#000000',
-              fontFamily: selectedFont.fontFamily,
-              fontWeight: selectedFont.fontWeight,
-              fontStyle: selectedFont.fontStyle,
-              letterSpacing: selectedFont.letterSpacing,
+      {/* Background rendering based on selected type - same as input page */}
+      {backgroundConfigs[backgroundType] && backgroundConfigs[backgroundType].type === 'lottie' && (
+        <LottieView
+          source={isNightMode ? backgroundConfigs[backgroundType].night : backgroundConfigs[backgroundType].day}
+          autoPlay
+          loop
+          style={{
+            position: 'absolute',
+            width: screenWidth + 100,
+            height: screenHeight + 150,
+            top: -100,
+            left: -50,
+            right: -50,
+            bottom: -50,
+          }}
+        />
+      )}
+      {backgroundConfigs[backgroundType] && backgroundConfigs[backgroundType].type === 'gradient' && (
+        <LinearGradient
+          colors={isNightMode ? backgroundConfigs[backgroundType].night.colors : backgroundConfigs[backgroundType].day.colors}
+          start={isNightMode ? backgroundConfigs[backgroundType].night.start : backgroundConfigs[backgroundType].day.start}
+          end={isNightMode ? backgroundConfigs[backgroundType].night.end : backgroundConfigs[backgroundType].day.end}
+          style={{
+            position: 'absolute',
+            width: screenWidth,
+            height: screenHeight,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+        />
+      )}
+      {backgroundConfigs[backgroundType] && backgroundConfigs[backgroundType].type === 'animated-gradient' && (
+        <>
+          <LinearGradient
+            colors={
+              backgroundType === 'tropical' ? tropicalColors :
+              backgroundType === 'galaxy' ? galaxyColors :
+              backgroundType === 'rainbow' ? rainbowColors :
+              backgroundType === 'sunset' ? sunsetColors :
+              backgroundType === 'retro' ? retroColors :
+              backgroundType === 'forest' ? forestColors :
+              blossomColors
             }
-          ]} 
-          ellipsizeMode='clip'
+            start={isNightMode ? backgroundConfigs[backgroundType].night.start : backgroundConfigs[backgroundType].day.start}
+            end={isNightMode ? backgroundConfigs[backgroundType].night.end : backgroundConfigs[backgroundType].day.end}
+            style={{
+              position: 'absolute',
+              width: screenWidth,
+              height: screenHeight,
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+          {backgroundType === 'galaxy' && starAnimations.map((star) => (
+            <Animated.View
+              key={star.id}
+              style={{
+                position: 'absolute',
+                left: `${star.x}%`,
+                top: `${star.y}%`,
+                width: star.size,
+                height: star.size,
+                borderRadius: star.size / 2,
+                backgroundColor: '#ffffff',
+                opacity: star.animValue,
+                shadowColor: '#ffffff',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.8,
+                shadowRadius: 2,
+              }}
+            />
+          ))}
+        </>
+      )}
+      {backgroundConfigs[backgroundType] && backgroundConfigs[backgroundType].type === 'solid' && (
+        <View
+          style={{
+            position: 'absolute',
+            width: screenWidth,
+            height: screenHeight,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: isNightMode 
+              ? backgroundConfigs[backgroundType].night?.color
+              : backgroundConfigs[backgroundType].day?.color,
+          }}
+        />
+      )}
+      {/* Custom color background (when no background is selected or custom mode is active) */}
+      {(!backgroundConfigs[backgroundType] || backgroundType === 'custom') && (
+        <View
+          style={{
+            position: 'absolute',
+            width: screenWidth,
+            height: screenHeight,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: isNightMode ? customNightColor : customDayColor,
+          }}
+        />
+      )}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView 
+          contentContainerStyle={[
+            styles.scrollContent,
+            (() => {
+              if (!selectedAnimation) return null;
+              const hasText = !!(text && text.trim() !== '');
+              if (!hasText) return null; // theme-only uses centered overlay
+              const base = Math.floor(Math.min(winDims.width, winDims.height) * 0.4);
+              const width = Math.max(260, Math.min(base, 420));
+              return { paddingRight: width + 40 };
+            })()
+          ]}
+          showsVerticalScrollIndicator={false}
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled"
         >
-          {selectedFont.textTransform === 'uppercase' 
-            ? text.toUpperCase() 
-            : selectedFont.textTransform === 'lowercase' 
-            ? text.toLowerCase() 
-            : text}
-        </Text>
-      </ScrollView>
+          <Text 
+            numberOfLines={5} 
+            style={[
+              styles.bigText, 
+              { 
+                color: isNightMode ? textNightColor : textDayColor,
+                fontFamily: selectedFont.fontFamily,
+                fontWeight: selectedFont.fontWeight,
+                fontStyle: selectedFont.fontStyle,
+                letterSpacing: selectedFont.letterSpacing,
+              }
+            ]} 
+            ellipsizeMode='clip'
+          >
+            {selectedFont.textTransform === 'uppercase' 
+              ? text.toUpperCase() 
+              : selectedFont.textTransform === 'lowercase' 
+              ? text.toLowerCase() 
+              : text}
+          </Text>
+        </ScrollView>
+      </TouchableWithoutFeedback>
       
       {selectedAnimation && (
         (!text || text.trim() === '') ? (
