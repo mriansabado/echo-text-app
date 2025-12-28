@@ -2,7 +2,7 @@
   "expo": {
     "name": "PocketSay",
     "slug": "fontastic",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Display large text from your pocket to communicate from a distance",
     "orientation": "default",
     "icon": "./assets/icon.png",
