@@ -32,14 +32,6 @@ import ThinkingAnimation from './assets/animations/thinking.json';
 import LoveAnimation from './assets/animations/love.json';
 
 
-// Debug: Check if animations imported correctly
-if (__DEV__) {
-  console.log('AnimationDaytime:', AnimationDaytime);
-  console.log('AnimationDaytime layers:', AnimationDaytime?.layers?.length || 0);
-  console.log('AnimationNighttime:', AnimationNighttime);
-  console.log('AnimationNighttime layers:', AnimationNighttime?.layers?.length || 0);
-}
-
 // Background configurations with day/night modes (shared between screens)
 const backgroundConfigs = {
   mountains: {
@@ -1414,38 +1406,22 @@ const HomeScreen = ({ navigation }) => {
       <SafeAreaView style={[styles.container, { backgroundColor: isNightMode ? '#000000' : 'transparent' }]} edges={['top']}>
         <StatusBar style="dark" />
       {/* Background rendering based on selected type */}
-      {backgroundConfigs[selectedBackground] && backgroundConfigs[selectedBackground].type === 'lottie' && (() => {
-        const lottieSource = isNightMode ? backgroundConfigs[selectedBackground].night : backgroundConfigs[selectedBackground].day;
-        if (__DEV__) {
-          console.log('=== MOUNTAIN BACKGROUND DEBUG ===');
-          console.log('Selected background:', selectedBackground);
-          console.log('Night mode:', isNightMode);
-          console.log('Source exists:', !!lottieSource);
-          console.log('Source type:', typeof lottieSource);
-          console.log('Source keys:', lottieSource ? Object.keys(lottieSource) : 'N/A');
-          console.log('Layers count:', lottieSource?.layers?.length || 0);
-          console.log('Has assets:', lottieSource?.assets?.length || 0);
-        }
-        return (
-          <LottieView
-            source={lottieSource}
-            autoPlay
-            loop
-            style={{
-              position: 'absolute',
-              width: dimensions.width + 100,
-              height: dimensions.height + 150,
-              top: -100,
-              left: -50,
-              right: -50,
-              bottom: -50,
-            }}
-            onAnimationFailure={(error) => {
-              console.error('Lottie animation failed:', error);
-            }}
-          />
-        );
-      })()}
+      {backgroundConfigs[selectedBackground] && backgroundConfigs[selectedBackground].type === 'lottie' && (
+        <LottieView
+          source={isNightMode ? backgroundConfigs[selectedBackground].night : backgroundConfigs[selectedBackground].day}
+          autoPlay
+          loop
+          style={{
+            position: 'absolute',
+            width: dimensions.width + 100,
+            height: dimensions.height + 150,
+            top: -100,
+            left: -50,
+            right: -50,
+            bottom: -50,
+          }}
+        />
+      )}
       {backgroundConfigs[selectedBackground] && backgroundConfigs[selectedBackground].type === 'gradient' && (
         <LinearGradient
           colors={isNightMode ? backgroundConfigs[selectedBackground].night.colors : backgroundConfigs[selectedBackground].day.colors}
