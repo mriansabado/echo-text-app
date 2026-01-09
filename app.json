@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
-      "**/*"
+      "**/*",
+      "assets/animations/*.json"
     ],
     "ios": {
       "supportsTablet": true,

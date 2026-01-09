@@ -12,19 +12,41 @@ import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Asset } from 'expo-asset';
 
 const Stack = createStackNavigator();
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
+// Import Lottie animations as JSON objects (works in both dev and production)
+// Metro bundles JSON files directly, so importing them gives us the actual JSON data
+import AnimationDaytime from './assets/animations/Animation-Daytime.json';
+import AnimationNighttime from './assets/animations/Animation-Nighttime.json';
+import HandWave from './assets/animations/hand wave.json';
+import AnimationAlert from './assets/animations/Animation - 1709705128416.json';
+import AnimationCelebrate from './assets/animations/Animation - 1708757997694.json';
+import HappyAnimation from './assets/animations/happy.json';
+import SadAnimation from './assets/animations/sad.json';
+import ThinkingAnimation from './assets/animations/thinking.json';
+import LoveAnimation from './assets/animations/love.json';
+
+
+// Debug: Check if animations imported correctly
+if (__DEV__) {
+  console.log('AnimationDaytime:', AnimationDaytime);
+  console.log('AnimationDaytime layers:', AnimationDaytime?.layers?.length || 0);
+  console.log('AnimationNighttime:', AnimationNighttime);
+  console.log('AnimationNighttime layers:', AnimationNighttime?.layers?.length || 0);
+}
+
 // Background configurations with day/night modes (shared between screens)
 const backgroundConfigs = {
   mountains: {
     name: 'Mountains',
     type: 'lottie',
-    day: require('./assets/animations/Animation-Daytime.json'),
-    night: require('./assets/animations/Animation-Nighttime.json'),
+    day: AnimationDaytime,
+    night: AnimationNighttime,
     previewColor: '#E8F4F8',
   },
   tropical: {
@@ -228,9 +250,8 @@ const PocketSayApp = () => {
   useEffect(() => {
     async function prepare() {
       try {
-        // Pre-load fonts, make any API calls you need to do here
-        // For now, just a small delay to ensure smooth transition
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Small delay to ensure smooth transition
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (e) {
         if (__DEV__) {
           console.warn('Error preparing app:', e);
@@ -1393,22 +1414,38 @@ const HomeScreen = ({ navigation }) => {
       <SafeAreaView style={[styles.container, { backgroundColor: isNightMode ? '#000000' : 'transparent' }]} edges={['top']}>
         <StatusBar style="dark" />
       {/* Background rendering based on selected type */}
-      {backgroundConfigs[selectedBackground] && backgroundConfigs[selectedBackground].type === 'lottie' && (
-        <LottieView
-          source={isNightMode ? backgroundConfigs[selectedBackground].night : backgroundConfigs[selectedBackground].day}
-          autoPlay
-          loop
-          style={{
-            position: 'absolute',
-            width: dimensions.width + 100,
-            height: dimensions.height + 150,
-            top: -100,
-            left: -50,
-            right: -50,
-            bottom: -50,
-          }}
-        />
-      )}
+      {backgroundConfigs[selectedBackground] && backgroundConfigs[selectedBackground].type === 'lottie' && (() => {
+        const lottieSource = isNightMode ? backgroundConfigs[selectedBackground].night : backgroundConfigs[selectedBackground].day;
+        if (__DEV__) {
+          console.log('=== MOUNTAIN BACKGROUND DEBUG ===');
+          console.log('Selected background:', selectedBackground);
+          console.log('Night mode:', isNightMode);
+          console.log('Source exists:', !!lottieSource);
+          console.log('Source type:', typeof lottieSource);
+          console.log('Source keys:', lottieSource ? Object.keys(lottieSource) : 'N/A');
+          console.log('Layers count:', lottieSource?.layers?.length || 0);
+          console.log('Has assets:', lottieSource?.assets?.length || 0);
+        }
+        return (
+          <LottieView
+            source={lottieSource}
+            autoPlay
+            loop
+            style={{
+              position: 'absolute',
+              width: dimensions.width + 100,
+              height: dimensions.height + 150,
+              top: -100,
+              left: -50,
+              right: -50,
+              bottom: -50,
+            }}
+            onAnimationFailure={(error) => {
+              console.error('Lottie animation failed:', error);
+            }}
+          />
+        );
+      })()}
       {backgroundConfigs[selectedBackground] && backgroundConfigs[selectedBackground].type === 'gradient' && (
         <LinearGradient
           colors={isNightMode ? backgroundConfigs[selectedBackground].night.colors : backgroundConfigs[selectedBackground].day.colors}
@@ -2656,13 +2693,13 @@ const PocketSayScreen = ({ route, navigation }) => {
   };
 
   const animationSources = {
-    Hi: require('./assets/animations/hand wave.json'),
-    Alert: require('./assets/animations/Animation - 1709705128416.json'),
-    Celebrate: require('./assets/animations/Animation - 1708757997694.json'),
-    Happy: require('./assets/animations/happy.json'),
-    Sad: require('./assets/animations/sad.json'),
-    Thinking: require('./assets/animations/thinking.json'),
-    Love: require('./assets/animations/love.json'),
+    Hi: HandWave,
+    Alert: AnimationAlert,
+    Celebrate: AnimationCelebrate,
+    Happy: HappyAnimation,
+    Sad: SadAnimation,
+    Thinking: ThinkingAnimation,
+    Love: LoveAnimation,
   };
 
   // Ensure we have valid dimensions
