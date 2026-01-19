@@ -242,8 +242,8 @@ const PocketSayApp = () => {
   useEffect(() => {
     async function prepare() {
       try {
-        // Small delay to ensure smooth transition
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Show splash screen for 1.5 seconds for brand visibility
+        await new Promise(resolve => setTimeout(resolve, 1500));
       } catch (e) {
         if (__DEV__) {
           console.warn('Error preparing app:', e);
@@ -545,6 +545,16 @@ const HomeScreen = ({ navigation }) => {
 
   const handleClearAll = () => {
     setText('');
+  };
+
+  const animationSources = {
+    Hi: HandWave,
+    Alert: AnimationAlert,
+    Celebrate: AnimationCelebrate,
+    Happy: HappyAnimation,
+    Sad: SadAnimation,
+    Thinking: ThinkingAnimation,
+    Love: LoveAnimation,
   };
 
   const selectAnimation = (animation) => {
@@ -1370,8 +1380,20 @@ const HomeScreen = ({ navigation }) => {
         onPress={() => selectAnimation(theme.key)}
         accessibilityLabel={`Select ${theme.label} theme`}
       >
-        <View style={[styles.themeEmoji, { backgroundColor: theme.color + '20' }]}>
-          <Text style={styles.emojiText}>{theme.emoji}</Text>
+        <View style={[
+          styles.themeEmoji, 
+          { backgroundColor: theme.color + '20' },
+          theme.key === 'Happy' && styles.happyEmojiContainer
+        ]}>
+          <LottieView
+            source={animationSources[theme.key]}
+            autoPlay
+            loop
+            style={[
+              styles.themeEmojiLottie,
+              theme.key === 'Happy' && styles.happyEmojiLottie
+            ]}
+          />
           {selectedAnimation === theme.key && (
             <View style={[
               styles.checkmarkContainer,
@@ -1552,7 +1574,14 @@ const HomeScreen = ({ navigation }) => {
                   style={[
                     styles.input, 
                     isNightMode && styles.inputNightMode,
-                    text.length >= 68 && styles.inputLimitReached
+                    text.length >= 68 && styles.inputLimitReached,
+                    selectedAnimation !== null && { paddingRight: 65 },
+                    {
+                      fontFamily: fontStyles[selectedFontStyle]?.fontFamily,
+                      fontWeight: fontStyles[selectedFontStyle]?.fontWeight,
+                      fontStyle: fontStyles[selectedFontStyle]?.fontStyle,
+                      letterSpacing: fontStyles[selectedFontStyle]?.letterSpacing,
+                    }
                   ]}
                   onChangeText={handleTextChange}
                   value={text}
@@ -1562,6 +1591,21 @@ const HomeScreen = ({ navigation }) => {
                   maxLength={68}
                   multiline={true}
                 />
+                {selectedAnimation !== null && (
+                  <View style={styles.inputAnimationPreview} pointerEvents="none">
+                    <LottieView
+                      source={animationSources[selectedAnimation]}
+                      autoPlay
+                      loop
+                      resizeMode="contain"
+                      style={[
+                        styles.inputAnimationPreviewLottie,
+                        selectedAnimation === 'Sad' && { transform: [{ scale: 0.85 }] },
+                        selectedAnimation === 'Happy' && { transform: [{ scale: 1.15 }] },
+                      ]}
+                    />
+                  </View>
+                )}
                 {text.length > 0 && (
                   <Text style={[
                     styles.characterCount, 
@@ -1606,10 +1650,15 @@ const HomeScreen = ({ navigation }) => {
                       styles.themeTitleContainer,
                       isNightMode && styles.themeTitleContainerNight,
                       isThemeSectionExpanded && styles.themeTitleContainerSelected,
-                      isThemeSectionExpanded && isNightMode && styles.themeTitleContainerSelectedNight
+                      isThemeSectionExpanded && isNightMode && styles.themeTitleContainerSelectedNight,
+                      selectedAnimation !== null && styles.themeTitleContainerHasSelection,
+                      selectedAnimation !== null && isNightMode && styles.themeTitleContainerHasSelectionNight
                     ]}
                   >
-                    <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Theme</Text>
+                    <Text style={[styles.themeSectionTitle, { color: isNightMode ? '#f0f0f0' : '#1a1a1a' }]}>Emoji</Text>
+                    {selectedAnimation !== null && (
+                      <View style={styles.selectionIndicatorDot} />
+                    )}
                   </LinearGradient>
                 </TouchableOpacity>
                 <TouchableOpacity 
@@ -1675,7 +1724,6 @@ const HomeScreen = ({ navigation }) => {
                           key={key}
                           onPress={() => {
                             setSelectedFontStyle(key);
-                            setShowFontDropdown(false);
                           }}
                           activeOpacity={0.7}
                           style={[
@@ -2845,7 +2893,13 @@ const PocketSayScreen = ({ route, navigation }) => {
                   source={animationSources[selectedAnimation]}
                   autoPlay
                   loop
-                  style={[styles.animationCentered, { width, height }]}
+                  resizeMode="contain"
+                  style={[
+                    styles.animationCentered, 
+                    { width, height },
+                    selectedAnimation === 'Sad' && { transform: [{ scale: 0.85 }] },
+                    selectedAnimation === 'Happy' && { transform: [{ scale: 1.15 }] },
+                  ]}
                 />
               );
             })()}
@@ -2860,7 +2914,13 @@ const PocketSayScreen = ({ route, navigation }) => {
                 source={animationSources[selectedAnimation]}
                 autoPlay
                 loop
-                style={[styles.animation, { width, height, marginTop: -height / 2 }]}
+                resizeMode="contain"
+                style={[
+                  styles.animation, 
+                  { width, height, marginTop: -height / 2 },
+                  selectedAnimation === 'Sad' && { transform: [{ scale: 0.85 }] },
+                  selectedAnimation === 'Happy' && { transform: [{ scale: 1.15 }] },
+                ]}
               />
             );
           })()
@@ -3162,8 +3222,25 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     fontSize: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    height: 80,
+    height: 100,
     textAlignVertical: 'top',
+  },
+  inputAnimationPreview: {
+    position: 'absolute',
+    right: 15,
+    top: '35%',
+    marginTop: -20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+    pointerEvents: 'none',
+    overflow: 'hidden',
+  },
+  inputAnimationPreviewLottie: {
+    width: 40,
+    height: 40,
   },
   inputNightMode: {
     color: '#fff',
@@ -3176,8 +3253,8 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     position: 'absolute',
-    right: 10,
-    bottom: 5,
+    right: 8,
+    bottom: 8,
     padding: 5,
   },
   characterCount: {
@@ -3268,6 +3345,23 @@ const styles = StyleSheet.create({
   themeTitleContainerSelectedNight: {
     borderColor: '#81b0ff',
   },
+  themeTitleContainerHasSelection: {
+    borderWidth: 1.5,
+    borderColor: '#007AFF',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  themeTitleContainerHasSelectionNight: {
+    borderColor: '#81b0ff',
+  },
+  selectionIndicatorDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#007AFF',
+    marginLeft: 6,
+  },
   themeSectionTitle: {
     fontSize: 11,
     fontWeight: '700',
@@ -3309,13 +3403,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 1)',
     shadowOpacity: 0.4,
     elevation: 10,
-    transform: [{ scale: 1.05 }],
+    transform: [{ scale: 1.15 }],
     borderWidth: 2.5,
     borderColor: '#007AFF',
   },
   selectedThemeCardNight: {
     backgroundColor: 'rgba(60, 60, 60, 1)',
     borderColor: '#81b0ff',
+  },
+  happyCard: {
+    width: 60,
+    height: 84,
+    transform: [{ scale: 1.1 }],
   },
   themeEmoji: {
     width: 32,
@@ -3324,9 +3423,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
+    overflow: 'hidden',
   },
-  emojiText: {
-    fontSize: 18,
+  themeEmojiLottie: {
+    width: 32,
+    height: 32,
+  },
+  happyEmojiContainer: {
+    width: 44,
+    height: 44,
+  },
+  happyEmojiLottie: {
+    width: 44,
+    height: 44,
   },
   checkmarkContainer: {
     position: 'absolute',
