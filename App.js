@@ -236,6 +236,258 @@ const interpolateColor = (color1, color2, factor) => {
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 };
 
+// Onboarding Slideshow Component
+const OnboardingSlideshow = ({ visible, onClose, isNightMode, dimensions }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const slides = [
+    {
+      title: "Step 1: Enter Your Text",
+      description: "Type your message in the text input field. This is where your creative journey begins!",
+      image: require('./assets/animations/input.png'),
+    },
+    {
+      title: "Step 2: Add an Emoji",
+      description: "Tap the Emoji button to add fun animations and emojis that bring your message to life!",
+      image: require('./assets/animations/emojis.png'),
+    },
+    {
+      title: "Step 3: Choose a Font",
+      description: "Tap the Font button to browse and select from a variety of beautiful font styles that match your message.",
+      image: require('./assets/animations/fonts.png'),
+    },
+    {
+      title: "Step 4: Display Your Creation",
+      description: "Tap the Display button to see your beautiful animated message in full screen with all the effects.",
+      image: require('./assets/animations/display1.png'),
+    },
+    {
+      title: "Step 5: Night Mode & Drawing",
+      description: "Switch to night mode for a different vibe, and use the draw feature to add your personal touch!",
+      image: require('./assets/animations/display2.png'),
+    },
+    {
+      title: "Step 6: Quick Say Phrases",
+      description: "Save your favorite phrases for quick access later. Perfect for messages you use often!",
+      image: require('./assets/animations/quickSay.png'),
+    },
+    {
+      title: "Step 7: Explore Settings",
+      description: "Access settings to customize your experience, watch tutorials again, or adjust preferences.",
+      image: require('./assets/animations/menu.png'),
+    }
+  ];
+
+  useEffect(() => {
+    if (visible) {
+      setCurrentSlide(0);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: -currentSlide * dimensions.width,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+    }).start();
+  }, [currentSlide]);
+
+  const nextSlide = () => {
+    if (currentSlide < slides.length - 1) {
+      setCurrentSlide(currentSlide + 1);
+    } else {
+      handleComplete();
+    }
+  };
+
+  const prevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
+    }
+  };
+
+  const handleComplete = () => {
+    onClose();
+  };
+
+  const renderPreview = (imageSource) => {
+    const previewStyle = {
+      width: dimensions.width * 0.9,
+      height: dimensions.height * 0.55,
+      borderRadius: 20,
+      overflow: 'hidden',
+      borderWidth: 3,
+      borderColor: isNightMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    };
+
+    return (
+      <View style={previewStyle}>
+        <Image
+          source={imageSource}
+          style={{
+            width: '100%',
+            height: '100%',
+            resizeMode: 'contain',
+          }}
+        />
+      </View>
+    );
+  };
+
+  if (!visible) return null;
+
+  return (
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <Animated.View style={[styles.onboardingOverlay, { opacity: fadeAnim }]}>
+        <View style={[
+          styles.onboardingContainer,
+          { width: dimensions.width, height: dimensions.height }
+        ]}>
+          <LinearGradient
+            colors={isNightMode ? ['#1a1a1a', '#0a0a0a'] : ['#ffffff', '#f5f5f5']}
+            style={styles.onboardingContent}
+          >
+            {/* Close button */}
+            <TouchableOpacity
+              style={styles.onboardingCloseButton}
+              onPress={handleComplete}
+            >
+              <Ionicons
+                name="close"
+                size={28}
+                color={isNightMode ? '#ffffff' : '#000000'}
+              />
+            </TouchableOpacity>
+
+            {/* Slides container */}
+            <View style={styles.onboardingSlidesContainer}>
+              <Animated.View
+                style={[
+                  styles.onboardingSlidesWrapper,
+                  {
+                    width: dimensions.width * slides.length,
+                    transform: [{ translateX: slideAnim }],
+                  },
+                ]}
+              >
+                {slides.map((slide, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.onboardingSlide,
+                      { width: dimensions.width }
+                    ]}
+                  >
+                    <View style={styles.onboardingPreviewContainer}>
+                      {renderPreview(slide.image)}
+                    </View>
+                    <Text style={[
+                      styles.onboardingTitle,
+                      isNightMode && styles.onboardingTitleNight
+                    ]}>
+                      {slide.title}
+                    </Text>
+                    <Text style={[
+                      styles.onboardingDescription,
+                      isNightMode && styles.onboardingDescriptionNight
+                    ]}>
+                      {slide.description}
+                    </Text>
+                  </View>
+                ))}
+              </Animated.View>
+            </View>
+
+            {/* Pagination dots */}
+            <View style={styles.onboardingPagination}>
+              {slides.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.onboardingDot,
+                    currentSlide === index && styles.onboardingDotActive,
+                    isNightMode && styles.onboardingDotNight,
+                    currentSlide === index && isNightMode && styles.onboardingDotActiveNight,
+                  ]}
+                />
+              ))}
+            </View>
+
+            {/* Navigation buttons */}
+            <View style={styles.onboardingNavigation}>
+              {currentSlide > 0 && (
+                <TouchableOpacity
+                  onPress={prevSlide}
+                  style={[
+                    styles.onboardingNavButton,
+                    isNightMode && styles.onboardingNavButtonNight
+                  ]}
+                >
+                  <Ionicons
+                    name="chevron-back"
+                    size={24}
+                    color={isNightMode ? '#ffffff' : '#000000'}
+                  />
+                  <Text style={[
+                    styles.onboardingNavButtonText,
+                    isNightMode && styles.onboardingNavButtonTextNight
+                  ]}>
+                    Back
+                  </Text>
+                </TouchableOpacity>
+              )}
+              <View style={{ flex: 1 }} />
+              <TouchableOpacity
+                onPress={nextSlide}
+                style={styles.onboardingNextButton}
+              >
+                <LinearGradient
+                  colors={['#4A90E2', '#357ABD']}
+                  style={styles.onboardingNextButtonGradient}
+                >
+                  <Text style={styles.onboardingNextButtonText}>
+                    {currentSlide === slides.length - 1 ? 'Get Started' : 'Next'}
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color="#ffffff"
+                    style={{ marginLeft: 5 }}
+                  />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        </View>
+      </Animated.View>
+    </Modal>
+  );
+};
+
 const PocketSayApp = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
@@ -298,6 +550,8 @@ const HomeScreen = ({ navigation }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [showQuickSay, setShowQuickSay] = useState(false);
   const [savedSayings, setSavedSayings] = useState([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showWelcomePrompt, setShowWelcomePrompt] = useState(false);
   const [newSayingText, setNewSayingText] = useState('');
   const quickSayScrollViewRef = useRef(null);
   const [customDayColor, setCustomDayColor] = useState('#f7e5e7');
@@ -358,11 +612,55 @@ const HomeScreen = ({ navigation }) => {
     // Load saved sayings on mount
     loadSavedSayings();
 
+    // Check for first-time user
+    checkFirstTimeUser();
+
     return () => {
       subscription.remove();
       ScreenOrientation.unlockAsync();
     };
   }, []);
+
+  // Check if user is first-time
+  const checkFirstTimeUser = async () => {
+    try {
+      const hasSeenOnboarding = await AsyncStorage.getItem('hasSeenOnboarding');
+      if (hasSeenOnboarding === null) {
+        // First time user - show welcome prompt after a brief delay
+        setTimeout(() => {
+          setShowWelcomePrompt(true);
+        }, 1000);
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.log('Error checking onboarding status:', error);
+      }
+    }
+  };
+
+  // Handle onboarding completion
+  const handleOnboardingClose = async () => {
+    setShowOnboarding(false);
+    try {
+      await AsyncStorage.setItem('hasSeenOnboarding', 'true');
+    } catch (error) {
+      if (__DEV__) {
+        console.log('Error saving onboarding status:', error);
+      }
+    }
+  };
+
+  // Start onboarding from welcome prompt
+  const startOnboarding = () => {
+    setShowWelcomePrompt(false);
+    setShowOnboarding(true);
+  };
+
+  // Start onboarding from settings
+  const replayOnboarding = () => {
+    setShowSettings(false);
+    setShowOnboarding(true);
+  };
 
   // Load saved sayings from AsyncStorage
   const loadSavedSayings = async () => {
@@ -2303,6 +2601,43 @@ const HomeScreen = ({ navigation }) => {
                       )}
                     </View>
                     
+                    {/* Help & Support Section */}
+                    <View style={styles.settingsSection}>
+                      <Text style={[
+                        styles.settingsSectionTitle,
+                        isNightMode && styles.settingsSectionTitleNight
+                      ]}>
+                        Help & Support
+                      </Text>
+                      <TouchableOpacity
+                        onPress={replayOnboarding}
+                        style={[
+                          styles.settingsButtonItem,
+                          isNightMode && styles.settingsButtonItemNight
+                        ]}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.settingsButtonItemContent}>
+                          <Ionicons
+                            name="help-circle-outline"
+                            size={24}
+                            color={isNightMode ? '#ffffff' : '#000000'}
+                          />
+                          <Text style={[
+                            styles.settingsButtonItemText,
+                            isNightMode && styles.settingsButtonItemTextNight
+                          ]}>
+                            Watch Tutorial
+                          </Text>
+                        </View>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={20}
+                          color={isNightMode ? '#888' : '#666'}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    
                     {/* Future customizations can be added here */}
                   </ScrollView>
                 </View>
@@ -2310,6 +2645,87 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </TouchableWithoutFeedback>
         </Modal>
+        
+        {/* Welcome Prompt Modal */}
+        <Modal
+          visible={showWelcomePrompt}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowWelcomePrompt(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setShowWelcomePrompt(false)}>
+            <View style={styles.welcomePromptOverlay}>
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <Animated.View style={[
+                  styles.welcomePromptContainer,
+                  isNightMode && styles.welcomePromptContainerNight
+                ]}>
+                  <LinearGradient
+                    colors={isNightMode ? ['#2a2a2a', '#1a1a1a'] : ['#ffffff', '#f5f5f5']}
+                    style={styles.welcomePromptContent}
+                  >
+                    <LottieView
+                      source={HandWave}
+                      autoPlay
+                      loop
+                      style={styles.welcomePromptAnimation}
+                    />
+                    <Text style={[
+                      styles.welcomePromptTitle,
+                      isNightMode && styles.welcomePromptTitleNight
+                    ]}>
+                      Welcome to PocketSay!
+                    </Text>
+                    <Text style={[
+                      styles.welcomePromptText,
+                      isNightMode && styles.welcomePromptTextNight
+                    ]}>
+                      New to PocketSay? We'll guide you through 7 simple steps to get you creating beautiful animated messages in no time!
+                    </Text>
+                    <View style={styles.welcomePromptButtons}>
+                      <TouchableOpacity
+                        onPress={() => setShowWelcomePrompt(false)}
+                        style={[
+                          styles.welcomePromptButtonSecondary,
+                          isNightMode && styles.welcomePromptButtonSecondaryNight
+                        ]}
+                      >
+                        <Text style={[
+                          styles.welcomePromptButtonSecondaryText,
+                          isNightMode && styles.welcomePromptButtonSecondaryTextNight
+                        ]}>
+                          Maybe Later
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={startOnboarding}
+                        style={styles.welcomePromptButtonPrimary}
+                      >
+                        <LinearGradient
+                          colors={['#4A90E2', '#357ABD']}
+                          style={styles.welcomePromptButtonPrimaryGradient}
+                        >
+                          <Text style={styles.welcomePromptButtonPrimaryText}>
+                            Get Started
+                          </Text>
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    </View>
+                  </LinearGradient>
+                </Animated.View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+        
+        {/* Onboarding Slideshow */}
+        <OnboardingSlideshow
+          visible={showOnboarding}
+          onClose={handleOnboardingClose}
+          isNightMode={isNightMode}
+          dimensions={dimensions}
+        />
+        
         {/* Removed pre-navigation black overlay to avoid initial black-screen stall */}
       </SafeAreaView>
       <SafeAreaView edges={['bottom']} style={styles.bottomSafeAreaContainer} />
@@ -4102,6 +4518,271 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 5,
     transform: [{ scale: 1.1 }],
+  },
+  // Onboarding Styles
+  onboardingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  onboardingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  onboardingContent: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 0,
+    overflow: 'hidden',
+  },
+  onboardingCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  onboardingSlidesContainer: {
+    flex: 1,
+    overflow: 'hidden',
+    marginTop: 70,
+  },
+  onboardingSlidesWrapper: {
+    flexDirection: 'row',
+    height: '100%',
+  },
+  onboardingSlide: {
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  onboardingPreviewContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 30,
+    position: 'relative',
+  },
+  onboardingHighlight: {
+    position: 'absolute',
+    borderWidth: 3,
+    borderColor: '#4A90E2',
+    borderRadius: 12,
+    backgroundColor: 'rgba(74, 144, 226, 0.1)',
+  },
+  onboardingTitle: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#000000',
+    textAlign: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 20,
+  },
+  onboardingTitleNight: {
+    color: '#ffffff',
+  },
+  onboardingDescription: {
+    fontSize: 15,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 25,
+    marginBottom: 10,
+  },
+  onboardingDescriptionNight: {
+    color: '#cccccc',
+  },
+  onboardingPagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  onboardingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  onboardingDotNight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  onboardingDotActive: {
+    width: 24,
+    backgroundColor: '#4A90E2',
+  },
+  onboardingDotActiveNight: {
+    backgroundColor: '#4A90E2',
+  },
+  onboardingNavigation: {
+    flexDirection: 'row',
+    paddingHorizontal: 30,
+    paddingBottom: 50,
+    alignItems: 'center',
+  },
+  onboardingNavButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  onboardingNavButtonNight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  onboardingNavButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginLeft: 5,
+  },
+  onboardingNavButtonTextNight: {
+    color: '#ffffff',
+  },
+  onboardingNextButton: {
+    borderRadius: 25,
+    overflow: 'hidden',
+  },
+  onboardingNextButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+  },
+  onboardingNextButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  // Welcome Prompt Styles
+  welcomePromptOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  welcomePromptContainer: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  welcomePromptContainerNight: {
+    shadowColor: '#fff',
+  },
+  welcomePromptContent: {
+    padding: 30,
+    alignItems: 'center',
+  },
+  welcomePromptAnimation: {
+    width: 120,
+    height: 120,
+    marginBottom: 20,
+  },
+  welcomePromptTitle: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#000000',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  welcomePromptTitleNight: {
+    color: '#ffffff',
+  },
+  welcomePromptText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 30,
+  },
+  welcomePromptTextNight: {
+    color: '#cccccc',
+  },
+  welcomePromptButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  welcomePromptButtonSecondary: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  welcomePromptButtonSecondaryNight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  welcomePromptButtonSecondaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  welcomePromptButtonSecondaryTextNight: {
+    color: '#ffffff',
+  },
+  welcomePromptButtonPrimary: {
+    flex: 1,
+    borderRadius: 25,
+    overflow: 'hidden',
+  },
+  welcomePromptButtonPrimaryGradient: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  welcomePromptButtonPrimaryText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  // Settings Button Item Styles
+  settingsButtonItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    marginBottom: 10,
+  },
+  settingsButtonItemNight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  settingsButtonItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  settingsButtonItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#000000',
+  },
+  settingsButtonItemTextNight: {
+    color: '#ffffff',
   },
 });
 
