@@ -26,11 +26,16 @@ import AnimationDaytime from './assets/animations/Animation-Daytime.json';
 import AnimationNighttime from './assets/animations/Animation-Nighttime.json';
 import HandWave from './assets/animations/hand wave.json';
 import AnimationAlert from './assets/animations/Animation - 1709705128416.json';
-import AnimationCelebrate from './assets/animations/Animation - 1708757997694.json';
 import HappyAnimation from './assets/animations/happy.json';
 import SadAnimation from './assets/animations/sad.json';
-import ThinkingAnimation from './assets/animations/thinking.json';
+import ThinkingAnimation from './assets/animations/question.json';
 import LoveAnimation from './assets/animations/love.json';
+import AngryAnimation from './assets/animations/angry.json';
+import FunnyAnimation from './assets/animations/laughing.json';
+import AskAnimation from './assets/animations/question.json';
+import SorryAnimation from './assets/animations/sorry.json';
+import ThankYouAnimation from './assets/animations/thankyou.json';
+import GoodAnimation from './assets/animations/thumbsUp.json';
 
 
 // Background configurations with day/night modes (shared between screens)
@@ -586,6 +591,9 @@ const HomeScreen = ({ navigation }) => {
     // Load saved sayings on mount
     loadSavedSayings();
 
+    // Load saved font selection
+    loadSavedFontStyle();
+
     // Check for first-time user
     checkFirstTimeUser();
 
@@ -680,6 +688,31 @@ const HomeScreen = ({ navigation }) => {
     } catch (error) {
       if (__DEV__) {
         console.log('Error loading saved sayings:', error);
+      }
+    }
+  };
+
+  // Load saved font style from AsyncStorage
+  const loadSavedFontStyle = async () => {
+    try {
+      const savedFont = await AsyncStorage.getItem('selectedFontStyle');
+      if (savedFont) {
+        setSelectedFontStyle(savedFont);
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.log('Error loading saved font style:', error);
+      }
+    }
+  };
+
+  // Save font style to AsyncStorage
+  const saveFontStyle = async (fontStyle) => {
+    try {
+      await AsyncStorage.setItem('selectedFontStyle', fontStyle);
+    } catch (error) {
+      if (__DEV__) {
+        console.log('Error saving font style:', error);
       }
     }
   };
@@ -856,11 +889,16 @@ const HomeScreen = ({ navigation }) => {
   const animationSources = {
     Hi: HandWave,
     Alert: AnimationAlert,
-    Celebrate: AnimationCelebrate,
     Happy: HappyAnimation,
     Sad: SadAnimation,
     Thinking: ThinkingAnimation,
     Love: LoveAnimation,
+    Angry: AngryAnimation,
+    Funny: FunnyAnimation,
+    Ask: AskAnimation,
+    Sorry: SorryAnimation,
+    ThankYou: ThankYouAnimation,
+    Good: GoodAnimation,
   };
 
   const selectAnimation = (animation) => {
@@ -1472,6 +1510,8 @@ const HomeScreen = ({ navigation }) => {
   const transitionToResults = async (resultsBackgroundColor) => {
     try {
       await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      // Wait a bit for orientation to actually change before navigating
+      await new Promise(resolve => setTimeout(resolve, 150));
     } catch (e) {
       if (__DEV__) {
         console.log('Orientation lock failed (continuing):', e);
@@ -1582,11 +1622,16 @@ const HomeScreen = ({ navigation }) => {
     const themes = [
       { key: 'Hi', label: 'Wave', emoji: '👋', color: '#4CAF50' },
       { key: 'Alert', label: 'Alert', emoji: '⚠️', color: '#FF9800' },
-      { key: 'Celebrate', label: 'Party', emoji: '🎉', color: '#E91E63' },
       { key: 'Happy', label: 'Happy', emoji: '😊', color: '#FFEB3B' },
       { key: 'Sad', label: 'Sad', emoji: '😢', color: '#2196F3' },
-      { key: 'Thinking', label: 'Think', emoji: '🤔', color: '#9C27B0' },
+      { key: 'Thinking', label: 'Ask', emoji: '🤔', color: '#9C27B0' },
       { key: 'Love', label: 'Love', emoji: '❤️', color: '#F44336' },
+      { key: 'Angry', label: 'Angry', emoji: '😠', color: '#FF5722' },
+      { key: 'Funny', label: 'Funny', emoji: '😂', color: '#FF9800' },
+      { key: 'Ask', label: 'Ask', emoji: '❓', color: '#9C27B0' },
+      { key: 'Sorry', label: 'Sorry', emoji: '😔', color: '#607D8B' },
+      { key: 'ThankYou', label: 'Thanks', emoji: '🙏', color: '#4CAF50' },
+      { key: 'Good', label: 'Good', emoji: '👍', color: '#00BCD4' },
     ];
 
     return themes.map((theme) => (
@@ -1975,6 +2020,7 @@ const HomeScreen = ({ navigation }) => {
                           key={key}
                           onPress={() => {
                             setSelectedFontStyle(key);
+                            saveFontStyle(key);
                           }}
                           activeOpacity={0.7}
                           style={[
@@ -2620,42 +2666,6 @@ const HomeScreen = ({ navigation }) => {
                       )}
                     </View>
                     
-                    {/* Help & Support Section */}
-                    <View style={styles.settingsSection}>
-                      <Text style={[
-                        styles.settingsSectionTitle,
-                        isNightMode && styles.settingsSectionTitleNight
-                      ]}>
-                        Help & Support
-                      </Text>
-                      <TouchableOpacity
-                        onPress={replayOnboarding}
-                        style={[
-                          styles.settingsButtonItem,
-                          isNightMode && styles.settingsButtonItemNight
-                        ]}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.settingsButtonItemContent}>
-                          <Ionicons
-                            name="help-circle-outline"
-                            size={24}
-                            color={isNightMode ? '#ffffff' : '#000000'}
-                          />
-                          <Text style={[
-                            styles.settingsButtonItemText,
-                            isNightMode && styles.settingsButtonItemTextNight
-                          ]}>
-                            Watch Tutorial
-                          </Text>
-                        </View>
-                        <Ionicons
-                          name="chevron-forward"
-                          size={20}
-                          color={isNightMode ? '#888' : '#666'}
-                        />
-                      </TouchableOpacity>
-                    </View>
                     
                     {/* Future customizations can be added here */}
                   </ScrollView>
@@ -2905,22 +2915,31 @@ const PocketSayScreen = ({ route, navigation }) => {
           // Dismiss keyboard first
           Keyboard.dismiss();
           await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+          
+          // Wait a bit for orientation to actually change
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
           // Wait for orientation change and update dimensions multiple times to ensure accuracy
-          const updateDimensions = () => {
+          const updateDimensions = (attempt = 0) => {
             const newDims = Dimensions.get('window');
+            const isLandscape = newDims.width > newDims.height;
+            
             setWinDims(newDims);
+            
             // Check if we're actually in landscape (width > height)
-            if (newDims.width > newDims.height) {
+            if (isLandscape && newDims.width > 0 && newDims.height > 0) {
               setDimensionsReady(true);
+            } else if (attempt < 10) {
+              // If not landscape yet, try again (max 10 attempts = 500ms)
+              setTimeout(() => updateDimensions(attempt + 1), 50);
             } else {
-              // If not landscape yet, try again
-              setTimeout(updateDimensions, 50);
+              // Fallback: use current dimensions even if not perfect
+              setDimensionsReady(true);
             }
           };
-          // Start checking after a brief delay
-          setTimeout(updateDimensions, 100);
-          // Also check again after a longer delay to catch any late changes
-          setTimeout(updateDimensions, 300);
+          
+          // Start checking immediately
+          updateDimensions(0);
         } catch (e) {
           if (__DEV__) {
             console.log('Orientation lock failed:', e);
@@ -2928,7 +2947,8 @@ const PocketSayScreen = ({ route, navigation }) => {
           // Even if lock fails, try to get correct dimensions
           const newDims = Dimensions.get('window');
           setWinDims(newDims);
-          setDimensionsReady(true);
+          // Use a small delay to ensure dimensions are set
+          setTimeout(() => setDimensionsReady(true), 100);
         }
       };
       setDimensionsReady(false);
@@ -2959,9 +2979,14 @@ const PocketSayScreen = ({ route, navigation }) => {
   }, [backgroundType, isNightMode]);
 
   useEffect(() => {
-    // Fade in on mount for a smooth reveal
-    Animated.timing(fadeOpacity, { toValue: 0, duration: 220, useNativeDriver: true }).start();
-  }, []);
+    // Wait for dimensions to be ready before fading in
+    if (dimensionsReady) {
+      // Small delay to ensure layout is complete
+      setTimeout(() => {
+        Animated.timing(fadeOpacity, { toValue: 0, duration: 220, useNativeDriver: true }).start();
+      }, 50);
+    }
+  }, [dimensionsReady]);
 
   // Ensure no header appears on results screen
   useEffect(() => {
@@ -3175,21 +3200,37 @@ const PocketSayScreen = ({ route, navigation }) => {
   const animationSources = {
     Hi: HandWave,
     Alert: AnimationAlert,
-    Celebrate: AnimationCelebrate,
     Happy: HappyAnimation,
     Sad: SadAnimation,
     Thinking: ThinkingAnimation,
     Love: LoveAnimation,
+    Angry: AngryAnimation,
+    Funny: FunnyAnimation,
+    Ask: AskAnimation,
+    Sorry: SorryAnimation,
+    ThankYou: ThankYouAnimation,
+    Good: GoodAnimation,
   };
 
   // Ensure we have valid dimensions - use current window dimensions as fallback
   const currentDims = Dimensions.get('window');
-  const screenWidth = dimensionsReady && winDims.width > winDims.height 
-    ? winDims.width 
-    : (currentDims.width > currentDims.height ? currentDims.width : Math.max(winDims.width, currentDims.width));
-  const screenHeight = dimensionsReady && winDims.width > winDims.height 
-    ? winDims.height 
-    : (currentDims.width > currentDims.height ? currentDims.height : Math.max(winDims.height, currentDims.height));
+  
+  // Prefer ready landscape dimensions, fallback to current if landscape, otherwise use max
+  let screenWidth, screenHeight;
+  
+  if (dimensionsReady && winDims.width > winDims.height && winDims.width > 0 && winDims.height > 0) {
+    // Use ready landscape dimensions
+    screenWidth = winDims.width;
+    screenHeight = winDims.height;
+  } else if (currentDims.width > currentDims.height && currentDims.width > 0 && currentDims.height > 0) {
+    // Use current dimensions if landscape
+    screenWidth = currentDims.width;
+    screenHeight = currentDims.height;
+  } else {
+    // Fallback: use the larger dimension as width (assume landscape)
+    screenWidth = Math.max(winDims.width || 0, currentDims.width || 0, 800);
+    screenHeight = Math.max(winDims.height || 0, currentDims.height || 0, 600);
+  }
 
   // Handle layout changes to ensure we always have correct dimensions
   const handleLayout = (event) => {
