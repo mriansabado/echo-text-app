@@ -2225,6 +2225,20 @@ const HomeScreen = ({ navigation }) => {
             color={isNightMode ? '#ffffff' : '#000000'} 
           />
         </TouchableOpacity>
+        {/* Tutorial button */}
+        <TouchableOpacity
+          style={[
+            styles.tutorialButton,
+            isNightMode && styles.tutorialButtonNight
+          ]}
+          onPress={() => setShowOnboarding(true)}
+        >
+          <Ionicons 
+            name="school-outline" 
+            size={24} 
+            color={isNightMode ? '#ffffff' : '#000000'} 
+          />
+        </TouchableOpacity>
         {/* Settings Modal */}
         <Modal
           visible={showSettings}
@@ -2750,6 +2764,7 @@ const PocketSayScreen = ({ route, navigation }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const fadeOpacity = React.useRef(new Animated.Value(1)).current;
   const [winDims, setWinDims] = useState(Dimensions.get('window'));
+  const [dimensionsReady, setDimensionsReady] = useState(false);
   
   // Use passed night mode or determine from background color
   const [isNightMode, setIsNightMode] = useState(initialNightMode || backgroundColor === '#1e3a8a');
@@ -2885,16 +2900,33 @@ const PocketSayScreen = ({ route, navigation }) => {
           // Dismiss keyboard first
           Keyboard.dismiss();
           await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-          // Update dimensions after orientation change
-          setTimeout(() => {
-            setWinDims(Dimensions.get('window'));
-          }, 100);
+          // Wait for orientation change and update dimensions multiple times to ensure accuracy
+          const updateDimensions = () => {
+            const newDims = Dimensions.get('window');
+            setWinDims(newDims);
+            // Check if we're actually in landscape (width > height)
+            if (newDims.width > newDims.height) {
+              setDimensionsReady(true);
+            } else {
+              // If not landscape yet, try again
+              setTimeout(updateDimensions, 50);
+            }
+          };
+          // Start checking after a brief delay
+          setTimeout(updateDimensions, 100);
+          // Also check again after a longer delay to catch any late changes
+          setTimeout(updateDimensions, 300);
         } catch (e) {
           if (__DEV__) {
             console.log('Orientation lock failed:', e);
           }
+          // Even if lock fails, try to get correct dimensions
+          const newDims = Dimensions.get('window');
+          setWinDims(newDims);
+          setDimensionsReady(true);
         }
       };
+      setDimensionsReady(false);
       lockOrientation();
       
       // Do not unlock on blur to avoid a second flip; the caller handles locking back
@@ -2933,7 +2965,13 @@ const PocketSayScreen = ({ route, navigation }) => {
   }, [navigation]);
 
   useEffect(() => {
-    const sub = Dimensions.addEventListener('change', ({ window }) => setWinDims(window));
+    const sub = Dimensions.addEventListener('change', ({ window }) => {
+      setWinDims(window);
+      // Mark as ready when dimensions change (should be landscape)
+      if (window.width > window.height) {
+        setDimensionsReady(true);
+      }
+    });
     return () => {
       sub.remove();
     };
@@ -3142,12 +3180,31 @@ const PocketSayScreen = ({ route, navigation }) => {
     Love: LoveAnimation,
   };
 
-  // Ensure we have valid dimensions
-  const screenWidth = winDims.width || Dimensions.get('window').width;
-  const screenHeight = winDims.height || Dimensions.get('window').height;
+  // Ensure we have valid dimensions - use current window dimensions as fallback
+  const currentDims = Dimensions.get('window');
+  const screenWidth = dimensionsReady && winDims.width > winDims.height 
+    ? winDims.width 
+    : (currentDims.width > currentDims.height ? currentDims.width : Math.max(winDims.width, currentDims.width));
+  const screenHeight = dimensionsReady && winDims.width > winDims.height 
+    ? winDims.height 
+    : (currentDims.width > currentDims.height ? currentDims.height : Math.max(winDims.height, currentDims.height));
+
+  // Handle layout changes to ensure we always have correct dimensions
+  const handleLayout = (event) => {
+    const { width, height } = event.nativeEvent.layout;
+    // Only update if we're in landscape (width > height) and dimensions are significantly different
+    if (width > height && (Math.abs(width - winDims.width) > 10 || Math.abs(height - winDims.height) > 10)) {
+      setWinDims({ width, height });
+      setDimensionsReady(true);
+    }
+  };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]} edges={['left', 'right', 'top', 'bottom']}>
+    <SafeAreaView 
+      style={[styles.container, { backgroundColor: 'transparent' }]} 
+      edges={['left', 'right', 'top', 'bottom']}
+      onLayout={handleLayout}
+    >
       <StatusBar style="dark" />
       {/* Background rendering based on selected type - same as input page */}
       {backgroundConfigs[backgroundType] && backgroundConfigs[backgroundType].type === 'lottie' && (
@@ -4178,6 +4235,29 @@ const styles = StyleSheet.create({
     zIndex: 15,
   },
   settingsButtonNight: {
+    backgroundColor: 'rgba(40, 40, 40, 0.9)',
+  },
+  tutorialButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    zIndex: 15,
+  },
+  tutorialButtonNight: {
     backgroundColor: 'rgba(40, 40, 40, 0.9)',
   },
   modalOverlay: {
