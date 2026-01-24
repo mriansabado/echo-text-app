@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
+import * as ImagePicker from 'expo-image-picker';
 
 const Stack = createStackNavigator();
 
@@ -165,31 +166,6 @@ const backgroundConfigs = {
       end: { x: 1, y: 1 }
     },
     previewColor: '#FF00FF',
-  },
-  forest: {
-    name: 'Forest',
-    type: 'animated-gradient',
-    day: { 
-      colorSets: [
-        ['#228B22', '#8B7355', '#6B8E23', '#9ACD32'], // Forest Green, Tan, Olive, Yellow Green
-        ['#8B7355', '#6B8E23', '#9ACD32', '#228B22'], // Tan, Olive, Yellow Green, Forest Green
-        ['#6B8E23', '#9ACD32', '#228B22', '#8B7355'], // Olive, Yellow Green, Forest Green, Tan
-        ['#9ACD32', '#228B22', '#8B7355', '#6B8E23'], // Yellow Green, Forest Green, Tan, Olive
-      ],
-      start: { x: 0, y: 0 },
-      end: { x: 1, y: 1 }
-    },
-    night: { 
-      colorSets: [
-        ['#0F5132', '#3D2817', '#2F4F2F', '#4A5D23'], // Dark Forest, Dark Brown, Dark Olive, Dark Moss
-        ['#3D2817', '#2F4F2F', '#4A5D23', '#0F5132'], // Dark Brown, Dark Olive, Dark Moss, Dark Forest
-        ['#2F4F2F', '#4A5D23', '#0F5132', '#3D2817'], // Dark Olive, Dark Moss, Dark Forest, Dark Brown
-        ['#4A5D23', '#0F5132', '#3D2817', '#2F4F2F'], // Dark Moss, Dark Forest, Dark Brown, Dark Olive
-      ],
-      start: { x: 0, y: 0 },
-      end: { x: 1, y: 1 }
-    },
-    previewColor: '#228B22',
   },
   blossom: {
     name: 'Blossom',
@@ -560,6 +536,8 @@ const HomeScreen = ({ navigation }) => {
   const [textDayColor, setTextDayColor] = useState('#000000');
   const [textNightColor, setTextNightColor] = useState('#ffffff');
   const [textColorTab, setTextColorTab] = useState('day'); // 'day' or 'night'
+  const [customPhotoUri, setCustomPhotoUri] = useState(null);
+  const [customPhotoAspectRatio, setCustomPhotoAspectRatio] = useState(null); // width/height ratio
   const [gradientColors, setGradientColors] = useState(['#E8F4F8', '#F0E6F5']);
   const [buttonGradientColors, setButtonGradientColors] = useState(['#4A90E2', '#357ABD']);
   const fadeOpacity = React.useRef(new Animated.Value(0)).current;
@@ -576,8 +554,6 @@ const HomeScreen = ({ navigation }) => {
   const [sunsetColors, setSunsetColors] = useState(['#ef4444', '#f97316', '#fbbf24', '#3b82f6']);
   const retroAnim = React.useRef(new Animated.Value(0)).current;
   const [retroColors, setRetroColors] = useState(['#FF00FF', '#00FFFF', '#FF00FF', '#FFFF00']);
-  const forestAnim = React.useRef(new Animated.Value(0)).current;
-  const [forestColors, setForestColors] = useState(['#228B22', '#8B7355', '#6B8E23', '#9ACD32']);
   const blossomAnim = React.useRef(new Animated.Value(0)).current;
   const [blossomColors, setBlossomColors] = useState(['#FFB6C1', '#FFC0CB', '#FF69B4', '#FFE4E1']);
   
@@ -592,8 +568,6 @@ const HomeScreen = ({ navigation }) => {
   const [sunsetPreviewColors, setSunsetPreviewColors] = useState(['#ef4444', '#f97316', '#fbbf24', '#3b82f6']);
   const retroPreviewAnim = React.useRef(new Animated.Value(0)).current;
   const [retroPreviewColors, setRetroPreviewColors] = useState(['#FF00FF', '#00FFFF', '#FF00FF', '#FFFF00']);
-  const forestPreviewAnim = React.useRef(new Animated.Value(0)).current;
-  const [forestPreviewColors, setForestPreviewColors] = useState(['#228B22', '#8B7355', '#6B8E23', '#9ACD32']);
   const blossomPreviewAnim = React.useRef(new Animated.Value(0)).current;
   const [blossomPreviewColors, setBlossomPreviewColors] = useState(['#FFB6C1', '#FFC0CB', '#FF69B4', '#FFE4E1']);
   
@@ -660,6 +634,40 @@ const HomeScreen = ({ navigation }) => {
   const replayOnboarding = () => {
     setShowSettings(false);
     setShowOnboarding(true);
+  };
+
+  // Pick image from photo library
+  const pickImage = async () => {
+    try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need camera roll permissions to add your photo!');
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false, // Don't force aspect ratio
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setCustomPhotoUri(asset.uri);
+        // Calculate aspect ratio (width/height)
+        const aspectRatio = asset.width / asset.height;
+        setCustomPhotoAspectRatio(aspectRatio);
+        setSelectedBackground('customPhoto');
+        setShowSettings(false);
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.log('Error picking image:', error);
+      }
+      alert('Error selecting photo. Please try again.');
+    }
   };
 
   // Load saved sayings from AsyncStorage
@@ -1171,51 +1179,6 @@ const HomeScreen = ({ navigation }) => {
     };
   }, [selectedBackground, isNightMode]);
 
-  // Animate forest gradient background
-  useEffect(() => {
-    if (selectedBackground !== 'forest') return;
-
-    const config = backgroundConfigs.forest;
-    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
-
-    const listener = forestAnim.addListener(({ value }) => {
-      const index = Math.floor(value * (colorSets.length - 1));
-      const nextIndex = Math.min(index + 1, colorSets.length - 1);
-      const progress = (value * (colorSets.length - 1)) - index;
-      
-      // Interpolate between color sets (4 colors for forest)
-      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
-      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
-      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
-      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
-      
-      setForestColors([color1, color2, color3, color4]);
-    });
-
-    const startAnimation = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(forestAnim, {
-            toValue: 1,
-            duration: 9500, // Smooth 9.5 second transition for natural forest feel
-            useNativeDriver: false,
-          }),
-          Animated.timing(forestAnim, {
-            toValue: 0,
-            duration: 9500,
-            useNativeDriver: false,
-          }),
-        ])
-      ).start();
-    };
-    
-    startAnimation();
-    
-    return () => {
-      forestAnim.removeListener(listener);
-    };
-  }, [selectedBackground, isNightMode]);
-
   // Animate blossom gradient background
   useEffect(() => {
     if (selectedBackground !== 'blossom') return;
@@ -1466,47 +1429,6 @@ const HomeScreen = ({ navigation }) => {
   }, [isNightMode]);
 
   useEffect(() => {
-    const config = backgroundConfigs.forest;
-    const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
-
-    const listener = forestPreviewAnim.addListener(({ value }) => {
-      const index = Math.floor(value * (colorSets.length - 1));
-      const nextIndex = Math.min(index + 1, colorSets.length - 1);
-      const progress = (value * (colorSets.length - 1)) - index;
-      
-      const color1 = interpolateColor(colorSets[index][0], colorSets[nextIndex][0], progress);
-      const color2 = interpolateColor(colorSets[index][1], colorSets[nextIndex][1], progress);
-      const color3 = interpolateColor(colorSets[index][2], colorSets[nextIndex][2], progress);
-      const color4 = interpolateColor(colorSets[index][3], colorSets[nextIndex][3], progress);
-      
-      setForestPreviewColors([color1, color2, color3, color4]);
-    });
-
-    const startAnimation = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(forestPreviewAnim, {
-            toValue: 1,
-            duration: 9500,
-            useNativeDriver: false,
-          }),
-          Animated.timing(forestPreviewAnim, {
-            toValue: 0,
-            duration: 9500,
-            useNativeDriver: false,
-          }),
-        ])
-      ).start();
-    };
-    
-    startAnimation();
-    
-    return () => {
-      forestPreviewAnim.removeListener(listener);
-    };
-  }, [isNightMode]);
-
-  useEffect(() => {
     const config = backgroundConfigs.blossom;
     const colorSets = isNightMode ? config.night.colorSets : config.day.colorSets;
 
@@ -1565,7 +1487,9 @@ const HomeScreen = ({ navigation }) => {
         customDayColor: customDayColor,
         customNightColor: customNightColor,
         textDayColor: textDayColor,
-        textNightColor: textNightColor
+        textNightColor: textNightColor,
+        customPhotoUri: customPhotoUri,
+        customPhotoAspectRatio: customPhotoAspectRatio
       });
     }
   };
@@ -1767,7 +1691,6 @@ const HomeScreen = ({ navigation }) => {
               selectedBackground === 'rainbow' ? rainbowColors :
               selectedBackground === 'sunset' ? sunsetColors :
               selectedBackground === 'retro' ? retroColors :
-              selectedBackground === 'forest' ? forestColors :
               blossomColors
             }
             start={isNightMode ? backgroundConfigs[selectedBackground].night.start : backgroundConfigs[selectedBackground].day.start}
@@ -1820,7 +1743,7 @@ const HomeScreen = ({ navigation }) => {
         />
       )}
       {/* Custom color background (when no background is selected or custom mode is active) */}
-      {(!backgroundConfigs[selectedBackground] || selectedBackground === 'custom') && (
+      {(!backgroundConfigs[selectedBackground] || selectedBackground === 'custom') && selectedBackground !== 'customPhoto' && (
         <View
           style={{
             position: 'absolute',
@@ -1834,6 +1757,36 @@ const HomeScreen = ({ navigation }) => {
           }}
         />
       )}
+      {/* Custom photo background */}
+      {selectedBackground === 'customPhoto' && customPhotoUri && (() => {
+        // Determine screen orientation
+        const screenAspectRatio = dimensions.width / dimensions.height;
+        const isScreenPortrait = screenAspectRatio < 1;
+        
+        // Determine photo orientation
+        const isPhotoPortrait = customPhotoAspectRatio !== null && customPhotoAspectRatio < 1;
+        
+        // Always use 'cover' to fill screen and avoid white space
+        // When orientations match, it will fill nicely with minimal cropping
+        // When orientations don't match, it will crop appropriately
+        const resizeMode = 'cover';
+        
+        return (
+          <Image
+            source={{ uri: customPhotoUri }}
+            style={{
+              position: 'absolute',
+              width: dimensions.width,
+              height: dimensions.height,
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+            resizeMode={resizeMode}
+          />
+        );
+      })()}
       <KeyboardAvoidingView 
         style={[styles.contentContainer, { height: dimensions.height }]}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -2343,7 +2296,6 @@ const HomeScreen = ({ navigation }) => {
                                     key === 'rainbow' ? rainbowPreviewColors :
                                     key === 'sunset' ? sunsetPreviewColors :
                                     key === 'retro' ? retroPreviewColors :
-                                    key === 'forest' ? forestPreviewColors :
                                     blossomPreviewColors
                                   }
                                   start={isNightMode ? config.night.start : config.day.start}
@@ -2380,6 +2332,59 @@ const HomeScreen = ({ navigation }) => {
                             </Text>
                           </TouchableOpacity>
                         ))}
+                        {/* Photo Picker Button */}
+                        <TouchableOpacity
+                          onPress={pickImage}
+                          style={[
+                            styles.backgroundOption,
+                            selectedBackground === 'customPhoto' && styles.backgroundOptionSelected
+                          ]}
+                        >
+                          <View style={[
+                            styles.backgroundPreview,
+                            selectedBackground === 'customPhoto' && { borderColor: '#007AFF' },
+                            { 
+                              backgroundColor: isNightMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                              justifyContent: 'center',
+                              alignItems: 'center'
+                            }
+                          ]}>
+                            {customPhotoUri ? (
+                              <>
+                                <Image 
+                                  source={{ uri: customPhotoUri }} 
+                                  style={styles.backgroundGradientPreview}
+                                  resizeMode="cover"
+                                />
+                                {selectedBackground === 'customPhoto' && (
+                                  <View style={styles.backgroundCheckmark}>
+                                    <Ionicons name="checkmark" size={16} color="#fff" />
+                                  </View>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <Ionicons 
+                                  name="camera-outline" 
+                                  size={32} 
+                                  color={isNightMode ? '#ffffff' : '#000000'} 
+                                />
+                                <Ionicons 
+                                  name="add-circle" 
+                                  size={20} 
+                                  color={isNightMode ? '#ffffff' : '#000000'} 
+                                  style={{ position: 'absolute', bottom: 8, right: 8 }}
+                                />
+                              </>
+                            )}
+                          </View>
+                          <Text style={[
+                            styles.backgroundOptionLabel,
+                            isNightMode && styles.backgroundOptionLabelNight
+                          ]}>
+                            {customPhotoUri ? 'My Photo' : 'Add Photo'}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
                     
@@ -2758,7 +2763,9 @@ const PocketSayScreen = ({ route, navigation }) => {
     customDayColor = '#f7e5e7',
     customNightColor = '#1e3a8a',
     textDayColor = '#000000',
-    textNightColor = '#ffffff'
+    textNightColor = '#ffffff',
+    customPhotoUri = null,
+    customPhotoAspectRatio = null
   } = route.params || {};
   const [sound, setSound] = useState();
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -2783,8 +2790,6 @@ const PocketSayScreen = ({ route, navigation }) => {
   const [sunsetColors, setSunsetColors] = useState(['#ef4444', '#f97316', '#fbbf24', '#3b82f6']);
   const retroAnim = React.useRef(new Animated.Value(0)).current;
   const [retroColors, setRetroColors] = useState(['#FF00FF', '#00FFFF', '#FF00FF', '#FFFF00']);
-  const forestAnim = React.useRef(new Animated.Value(0)).current;
-  const [forestColors, setForestColors] = useState(['#228B22', '#8B7355', '#6B8E23', '#9ACD32']);
   const blossomAnim = React.useRef(new Animated.Value(0)).current;
   const [blossomColors, setBlossomColors] = useState(['#FFB6C1', '#FFC0CB', '#FF69B4', '#FFE4E1']);
   const [starAnimations, setStarAnimations] = useState([]);
@@ -2946,7 +2951,6 @@ const PocketSayScreen = ({ route, navigation }) => {
       else if (backgroundType === 'rainbow') setRainbowColors(initialColors);
       else if (backgroundType === 'sunset') setSunsetColors(initialColors);
       else if (backgroundType === 'retro') setRetroColors(initialColors);
-      else if (backgroundType === 'forest') setForestColors(initialColors);
       else if (backgroundType === 'blossom') setBlossomColors(initialColors);
     }
     
@@ -2988,14 +2992,12 @@ const PocketSayScreen = ({ route, navigation }) => {
                     backgroundType === 'rainbow' ? rainbowAnim :
                     backgroundType === 'sunset' ? sunsetAnim :
                     backgroundType === 'retro' ? retroAnim :
-                    backgroundType === 'forest' ? forestAnim :
                     blossomAnim;
     const setColors = backgroundType === 'tropical' ? setTropicalColors :
                       backgroundType === 'galaxy' ? setGalaxyColors :
                       backgroundType === 'rainbow' ? setRainbowColors :
                       backgroundType === 'sunset' ? setSunsetColors :
                       backgroundType === 'retro' ? setRetroColors :
-                      backgroundType === 'forest' ? setForestColors :
                       setBlossomColors;
 
     const listener = animRef.addListener(({ value }) => {
@@ -3247,7 +3249,6 @@ const PocketSayScreen = ({ route, navigation }) => {
               backgroundType === 'rainbow' ? rainbowColors :
               backgroundType === 'sunset' ? sunsetColors :
               backgroundType === 'retro' ? retroColors :
-              backgroundType === 'forest' ? forestColors :
               blossomColors
             }
             start={isNightMode ? backgroundConfigs[backgroundType].night.start : backgroundConfigs[backgroundType].day.start}
@@ -3300,7 +3301,7 @@ const PocketSayScreen = ({ route, navigation }) => {
         />
       )}
       {/* Custom color background (when no background is selected or custom mode is active) */}
-      {(!backgroundConfigs[backgroundType] || backgroundType === 'custom') && (
+      {(!backgroundConfigs[backgroundType] || backgroundType === 'custom') && backgroundType !== 'customPhoto' && (
         <View
           style={{
             position: 'absolute',
@@ -3312,6 +3313,22 @@ const PocketSayScreen = ({ route, navigation }) => {
             bottom: 0,
             backgroundColor: isNightMode ? customNightColor : customDayColor,
           }}
+        />
+      )}
+      {/* Custom photo background */}
+      {backgroundType === 'customPhoto' && customPhotoUri && (
+        <Image
+          source={{ uri: customPhotoUri }}
+          style={{
+            position: 'absolute',
+            width: screenWidth,
+            height: screenHeight,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+          resizeMode="cover"
         />
       )}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

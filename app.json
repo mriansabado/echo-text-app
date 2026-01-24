@@ -64,7 +64,13 @@
     },
     "plugins": [
       "expo-audio",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you set custom backgrounds."
+        }
+      ]
     ]
   }
 }
