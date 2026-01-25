@@ -28,7 +28,7 @@ import HandWave from './assets/animations/hand wave.json';
 import AnimationAlert from './assets/animations/Animation - 1709705128416.json';
 import HappyAnimation from './assets/animations/happy.json';
 import SadAnimation from './assets/animations/sad.json';
-import ThinkingAnimation from './assets/animations/question.json';
+import ThinkingAnimation from './assets/animations/thinking.json';
 import LoveAnimation from './assets/animations/love.json';
 import AngryAnimation from './assets/animations/angry.json';
 import FunnyAnimation from './assets/animations/laughing.json';
@@ -1621,17 +1621,17 @@ const HomeScreen = ({ navigation }) => {
   const renderThemeCards = () => {
     const themes = [
       { key: 'Hi', label: 'Wave', emoji: '👋', color: '#4CAF50' },
-      { key: 'Alert', label: 'Alert', emoji: '⚠️', color: '#FF9800' },
       { key: 'Happy', label: 'Happy', emoji: '😊', color: '#FFEB3B' },
-      { key: 'Sad', label: 'Sad', emoji: '😢', color: '#2196F3' },
-      { key: 'Thinking', label: 'Ask', emoji: '🤔', color: '#9C27B0' },
       { key: 'Love', label: 'Love', emoji: '❤️', color: '#F44336' },
-      { key: 'Angry', label: 'Angry', emoji: '😠', color: '#FF5722' },
       { key: 'Funny', label: 'Funny', emoji: '😂', color: '#FF9800' },
-      { key: 'Ask', label: 'Ask', emoji: '❓', color: '#9C27B0' },
-      { key: 'Sorry', label: 'Sorry', emoji: '😔', color: '#607D8B' },
-      { key: 'ThankYou', label: 'Thanks', emoji: '🙏', color: '#4CAF50' },
       { key: 'Good', label: 'Good', emoji: '👍', color: '#00BCD4' },
+      { key: 'ThankYou', label: 'Thanks', emoji: '🙏', color: '#4CAF50' },
+      { key: 'Sorry', label: 'Sorry', emoji: '😔', color: '#607D8B' },
+      { key: 'Sad', label: 'Sad', emoji: '😢', color: '#2196F3' },
+      { key: 'Angry', label: 'Angry', emoji: '😠', color: '#FF5722' },
+      { key: 'Thinking', label: 'Think', emoji: '🤔', color: '#9C27B0' },
+      { key: 'Ask', label: 'Ask', emoji: '❓', color: '#9C27B0' },
+      { key: 'Alert', label: 'Alert', emoji: '⚠️', color: '#FF9800' },
     ];
 
     return themes.map((theme) => (
@@ -1658,7 +1658,8 @@ const HomeScreen = ({ navigation }) => {
             loop
             style={[
               styles.themeEmojiLottie,
-              theme.key === 'Happy' && styles.happyEmojiLottie
+              theme.key === 'Happy' && styles.happyEmojiLottie,
+              theme.key === 'Angry' && styles.angryEmojiLottie
             ]}
           />
           {selectedAnimation === theme.key && (
@@ -3965,6 +3966,10 @@ const styles = StyleSheet.create({
     height: 44,
   },
   happyEmojiLottie: {
+    width: 44,
+    height: 44,
+  },
+  angryEmojiLottie: {
     width: 44,
     height: 44,
   },
