@@ -2,7 +2,7 @@
   "expo": {
     "name": "PocketSay",
     "slug": "fontastic",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "Display large text from your pocket to communicate from a distance",
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.iandev808.pocketsay",
-      "buildNumber": "20",
+      "buildNumber": "21",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIRequiresFullScreen": false,
@@ -58,7 +58,7 @@
       }
     },
     "owner": "iandev808",
-    "runtimeVersion": "1.0.5",
+    "runtimeVersion": "1.0.6",
     "updates": {
       "url": "https://u.expo.dev/46bb1139-8352-4631-b16b-7e1ec8b80edb"
     },
