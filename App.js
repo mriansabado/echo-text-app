@@ -386,16 +386,20 @@ const OnboardingSlideshow = ({ visible, onClose, isNightMode, dimensions }) => {
                     <View style={styles.onboardingPreviewContainer}>
                       {renderPreview(slide.image)}
                     </View>
-                    <Text style={[
-                      styles.onboardingTitle,
-                      isNightMode && styles.onboardingTitleNight
-                    ]}>
+                    <Text 
+                      allowFontScaling={false}
+                      style={[
+                        styles.onboardingTitle,
+                        isNightMode && styles.onboardingTitleNight
+                      ]}>
                       {slide.title}
                     </Text>
-                    <Text style={[
-                      styles.onboardingDescription,
-                      isNightMode && styles.onboardingDescriptionNight
-                    ]}>
+                    <Text 
+                      allowFontScaling={false}
+                      style={[
+                        styles.onboardingDescription,
+                        isNightMode && styles.onboardingDescriptionNight
+                      ]}>
                       {slide.description}
                     </Text>
                   </View>
@@ -433,10 +437,12 @@ const OnboardingSlideshow = ({ visible, onClose, isNightMode, dimensions }) => {
                     size={24}
                     color={isNightMode ? '#ffffff' : '#000000'}
                   />
-                  <Text style={[
-                    styles.onboardingNavButtonText,
-                    isNightMode && styles.onboardingNavButtonTextNight
-                  ]}>
+                  <Text 
+                    allowFontScaling={false}
+                    style={[
+                      styles.onboardingNavButtonText,
+                      isNightMode && styles.onboardingNavButtonTextNight
+                    ]}>
                     Back
                   </Text>
                 </TouchableOpacity>
@@ -450,7 +456,9 @@ const OnboardingSlideshow = ({ visible, onClose, isNightMode, dimensions }) => {
                   colors={['#4A90E2', '#357ABD']}
                   style={styles.onboardingNextButtonGradient}
                 >
-                  <Text style={styles.onboardingNextButtonText}>
+                  <Text 
+                    allowFontScaling={false}
+                    style={styles.onboardingNextButtonText}>
                     {currentSlide === slides.length - 1 ? 'Get Started' : 'Next'}
                   </Text>
                   <Ionicons
@@ -2700,16 +2708,20 @@ const HomeScreen = ({ navigation }) => {
                       loop
                       style={styles.welcomePromptAnimation}
                     />
-                    <Text style={[
-                      styles.welcomePromptTitle,
-                      isNightMode && styles.welcomePromptTitleNight
-                    ]}>
+                    <Text 
+                      allowFontScaling={false}
+                      style={[
+                        styles.welcomePromptTitle,
+                        isNightMode && styles.welcomePromptTitleNight
+                      ]}>
                       Welcome to PocketSay!
                     </Text>
-                    <Text style={[
-                      styles.welcomePromptText,
-                      isNightMode && styles.welcomePromptTextNight
-                    ]}>
+                    <Text 
+                      allowFontScaling={false}
+                      style={[
+                        styles.welcomePromptText,
+                        isNightMode && styles.welcomePromptTextNight
+                      ]}>
                       New to PocketSay? We'll guide you through 7 simple steps to get you creating beautiful animated messages in no time!
                     </Text>
                     <View style={styles.welcomePromptButtons}>
@@ -2720,10 +2732,12 @@ const HomeScreen = ({ navigation }) => {
                           isNightMode && styles.welcomePromptButtonSecondaryNight
                         ]}
                       >
-                        <Text style={[
-                          styles.welcomePromptButtonSecondaryText,
-                          isNightMode && styles.welcomePromptButtonSecondaryTextNight
-                        ]}>
+                        <Text 
+                          allowFontScaling={false}
+                          style={[
+                            styles.welcomePromptButtonSecondaryText,
+                            isNightMode && styles.welcomePromptButtonSecondaryTextNight
+                          ]}>
                           Maybe Later
                         </Text>
                       </TouchableOpacity>
@@ -2735,7 +2749,9 @@ const HomeScreen = ({ navigation }) => {
                           colors={['#4A90E2', '#357ABD']}
                           style={styles.welcomePromptButtonPrimaryGradient}
                         >
-                          <Text style={styles.welcomePromptButtonPrimaryText}>
+                          <Text 
+                            allowFontScaling={false}
+                            style={styles.welcomePromptButtonPrimaryText}>
                             Get Started
                           </Text>
                         </LinearGradient>
